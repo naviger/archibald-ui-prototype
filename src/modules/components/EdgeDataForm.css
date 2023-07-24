@@ -1,0 +1,21 @@
+.edge-data-frame {
+  display:flex;
+  flex-direction: column;
+  min-width:300px;
+}
+
+.edge-data-element {
+  display:flex;
+  flex-direction:row;
+  margin-top:5px;
+}
+
+.edge-data-label {
+  font-size:small;
+  width: 90px;
+  margin-right:5px;
+  text-align:right;
+  color:grey;
+}
+
+.edge-data-value {}

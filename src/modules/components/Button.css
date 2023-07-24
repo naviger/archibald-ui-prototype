@@ -1,0 +1,17 @@
+.button {
+  padding:4px;
+  border:solid 1px silver;
+  border-radius: 4px;
+  width: 15px;
+  height: 15px;
+  background-color:aliceblue;
+  pointer-events: all;
+  margin:1px;
+  cursor: pointer;
+}
+
+.btn-remove {
+  font-size: 20px;
+  color:red;
+  padding:4px;
+}

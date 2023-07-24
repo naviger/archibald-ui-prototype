@@ -1,0 +1,82 @@
+.canvas {
+  background-color: aqua;
+  flex:1;
+  height:100%;
+}
+
+.node {
+  border: solid 1px gray;
+  z-index:100;
+}
+
+.nodeName {
+  font: 10px sans-serif;
+  font-weight: bold;
+  color:darkblue;
+  text-align: left;
+  margin-block-start: 0;
+  pointer-events: none; 
+}
+
+foreignObject {
+  pointer-events: none; 
+}
+/* 
+.card-icon {
+  /* pointer-events: none;  * /
+} */
+
+svg {
+  cursor: initial;
+} 
+
+.top {
+  z-index: 999;
+}
+
+.anchor-no-move {
+  cursor:not-allowed;
+}
+
+.anchor-move-vert {
+  cursor:ew-resize
+}
+
+.anchor-move-horz {
+  cursor:ns-resize;
+}
+
+.anchor-move {
+  cursor:move
+}
+
+.node-ready {
+  cursor:pointer;
+}
+
+.node-add-anchor {
+  cursor:crosshair;
+}
+
+.node-moving {
+  cursor:grab
+}
+
+.node-locked {
+  cursor:not-allowed
+}
+
+.handle {
+  cursor:pointer;
+}
+
+.no-pointer-events, .display-edge, .edge-handle-line {
+  pointer-events: none;
+  /* border: solid 1px red; */
+}
+
+.debug-data {
+  position:absolute;
+  top:50px;
+  left:20px;
+}

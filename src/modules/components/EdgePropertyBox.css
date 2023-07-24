@@ -1,0 +1,39 @@
+.property-panel {
+  position: absolute;
+  display:flex;
+  flex-direction: row;
+}
+
+.inner-property-panel {
+  padding:4px;
+  border: solid 1px lightgrey;
+  background-color: aliceblue;
+  border-radius:4px;
+}
+
+.section-horizontal {
+  display:flex;
+  flex-direction: row;
+}
+
+.section-title {
+  text-align: left;
+  font-weight: bold;
+  color:grey;
+  padding-bottom:2px;
+}
+
+.box-handle {
+  height:25px;
+  width:13px;
+  pointer-events: all;
+  cursor:grab;
+}
+
+.box-handle-svg {
+  cursor:grab;
+}
+
+.flyout-handle {
+  width:10px;
+}

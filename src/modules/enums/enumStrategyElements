@@ -1,0 +1,6 @@
+export enum StrategyElements {
+  Resource, 
+  Capability,
+  ValueStream,
+  CourseOfAction
+}

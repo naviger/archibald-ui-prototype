@@ -27,7 +27,6 @@ export class EdgeAnchor {
   constraints:number
 
   anchorMouseDown:MouseEventHandler<SVGGElement> = (e) => {
-    console.log('SELECT ANCHOR: ', e.currentTarget)
     this.params.selectAnchor(e)
   }
 

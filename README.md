@@ -10,7 +10,7 @@
   - Add ability to add edge anchors to allow more then five segments
   - Add ability to delete edge anchors
   - Add rule processing for connectors
-  - Add Product card
+  - ~~Add Product card~~
   - Add nesting of items with resizable cards
   - Add physical items new to 3.2 Technology Layer 
 

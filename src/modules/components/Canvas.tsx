@@ -16,6 +16,7 @@ import { BusinessEventNode } from "../renderer/BusinessEventNode"
 import { BusinessServiceNode } from "../renderer/BusinessServiceNode"
 import { BusinessObjectNode } from "../renderer/BusinessObjectNode"
 import { BusinessContractNode } from "../renderer/BusinessContractNode"
+import { BusinessProductNode } from "../renderer/BusinessProductNode"
 import { BusinessRepresentationNode } from "../renderer/BusinessRepresentationNode"
 import { ApplicationCollaborationNode } from "../renderer/ApplicationCollaborationNode"
 import { ApplicationInterfaceNode } from "../renderer/ApplicationInterfaceNode"
@@ -720,6 +721,10 @@ export const Canvas = (props:CanvasProps) => {
             let nibp:JSX.Element = new BusinessProcessNode(n, np).Render()
             els.push(nibp)
             break
+          case NodeType.BusinessProduct:
+              let nibpr:JSX.Element = new BusinessProductNode(n, np).Render()
+              els.push(nibpr)
+              break
           case NodeType.BusinessFunction:
             let nibf:JSX.Element = new BusinessFunctionNode(n, np).Render()
             els.push(nibf)

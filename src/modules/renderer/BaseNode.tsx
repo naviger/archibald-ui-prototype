@@ -180,12 +180,12 @@ export class BaseNode {
       case ArchimateLayer.Business:
         cbg = ArchimateColors.Business
         break
-      case ArchimateLayer.Composite:
-        cbg = ArchimateColors.Composite
-        break
-      case ArchimateLayer.ImplementationAndMigration:
-        cbg = ArchimateColors.ImplementationAndMigration
-        break
+      // case ArchimateLayer.Composite:
+      //   cbg = ArchimateColors.Composite
+      //   break
+      // case ArchimateLayer.ImplementationAndMigration:
+      //   cbg = ArchimateColors.ImplementationAndMigration
+      //   break
       case ArchimateLayer.Motivation:
         cbg = ArchimateColors.Motivation
         break
@@ -223,6 +223,7 @@ export class BaseNode {
 
   renderFrame(family:NodeFamily, layer:ArchimateLayer):JSX.Element {
     let cbg:string = this.getBackgroundColor(layer)
+    console.log('COLOR: ', this.display.nodeData.nodeId, "Layer:", layer, "Family:", family, cbg )
     let anchors:Array<JSX.Element> = []
 
     if(this.display?.isSelected) {
@@ -235,6 +236,7 @@ export class BaseNode {
 
     switch(this.display.nodeData.family) {
       case NodeFamily.ActiveStructureElement:
+      case NodeFamily.CompositeElement:
         if(this.display.id==="0") {console.log(this.display)}
         return (
           <g key={this.display.id}>

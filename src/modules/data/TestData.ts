@@ -321,6 +321,28 @@ export const GetTestData = ():IModel => {
     ]
   }
 
+  let n14a:NodeDisplayInstance = {
+    id:'n14a-1',
+    nodeData: { nodeId: 'node-14a', name: "Business:Product", type: NodeType.BusinessProduct, family: NodeFamily.CompositeElement, data: {}, dimensions: {height:100, width:180} },
+    position: {x: 650, y: 850 },
+    oldPosition: {x: 450, y: 850 },
+    size: {height: 100, width: 180},
+    annotation:'',
+    isSelected:false,
+    isVisible:true,
+    status: NodeStatus.Ready,
+    anchors: [
+      {id: 's1', position: {x: 0, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's2', position: {x: 90, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's3', position: {x: 180, y:0 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's4', position: {x: 0, y:50 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's5', position: {x: 180, y:50 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's6', position: {x: 0, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's7', position: {x: 90, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's8', position: {x: 180, y:100 }, status: AnchorStatus.Available, edges:[]}
+    ]
+  }
+
   let n15:NodeDisplayInstance = {
     id:'n15-1',
     nodeData: { nodeId: 'node-15', name: "Application:Interface", type: NodeType.ApplicationInterface, family: NodeFamily.ActiveStructureElement, data: {}, dimensions: {height:100, width:180} },
@@ -1256,6 +1278,7 @@ export const GetTestData = ():IModel => {
   m.nodes.push(n12);
   m.nodes.push(n13);
   m.nodes.push(n14);
+  m.nodes.push(n14a);
   m.nodes.push(n15);
   m.nodes.push(n16);
   m.nodes.push(n17);

@@ -17,7 +17,7 @@
 ## Known Issues:
   - Selecting Edge does not update Edge Data UI component with current edge
   - Issues with drag and drop within SVG canvas makes it difficult to drag items - this is especially prevalent when trying to add a new edge
-  - The Communication Network is currently using Archimate 3.1 graphic
+  - ~~The Communication Network is currently using Archimate 3.1 graphic~~
 
 ## Overview
 This demo shows all of the Archimate 3.2 cards and allows them to be connected using the Archimate connectors as defined in the [Archimate 3.2](https://pubs.opengroup.org/architecture/archimate32-doc/index.html) definition. Archimate is a metamodel language for modeling enterprise architecture. This UI shows a complete set of the Archimate "cards". These cards are rendered on an SVG canvas and allow the user to move them and connect them utilizing the standard Archimate connectors.

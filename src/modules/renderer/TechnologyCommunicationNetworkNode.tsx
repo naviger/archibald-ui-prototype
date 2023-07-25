@@ -14,9 +14,19 @@ export class TechnologyCommunicationNetworkNode extends BaseNode {
     p1+= "m-5 -5"
     p1+= "l5 5 -5, 5"
     
+    const p = "" + (pos.x + 150) + ", " + (pos.y + 10) 
+              + " " + (pos.x + 165) + ", " + (pos.y + 10) 
+              + " " + (pos.x + 160 ) + ", " + (pos.y + 25) 
+              + " " + (pos.x + 145) + ", " + (pos.y + 25) 
+              + " " + (pos.x + 150) + ", " + (pos.y + 10)
     return (
       <g className="card-icon">
-        <path fill="white" stroke="grey" strokeWidth="2" d={p1} />
+        <circle r="3" cx={pos.x + 150} cy = {pos.y + 10 } fill="black"></circle>
+        <circle r="3" cx={pos.x + 165} cy = {pos.y + 10 } fill="black"></circle>
+        <circle r="3" cx={pos.x + 160} cy = {pos.y + 25 } fill="black"></circle>
+        <circle r="3" cx={pos.x + 145} cy = {pos.y + 25} fill="black"></circle>
+        <polyline points={p} fill="none" stroke="black" strokeWidth={1}/>
+        {/* <path fill="white" stroke="grey" strokeWidth="2" d={p1} /> */}
       </g>
     )
   }

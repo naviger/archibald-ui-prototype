@@ -46,7 +46,6 @@ const flyoutClose = <svg>
   const [inDrag, setInDrag] = React.useState<boolean>(false)
 
   const onLayoutClick:MouseEventHandler<HTMLDivElement> = (e) =>{
-    //console.log('CLICK:', e.currentTarget )
     const layoutString:string = e.currentTarget.getAttribute("data-layout") as string
     let layout:EdgeLayout = EdgeLayout.NinetyDegree
     switch(layoutString) {

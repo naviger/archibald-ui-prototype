@@ -35,7 +35,6 @@ export class EdgeHandle {
   }
 
   handleMouseMove:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log('MOVE EDGE ANCHOR', e.target)
     this.params.moveHandle(e)
   }
 

@@ -57,8 +57,6 @@ export class NodeAnchor {
       break;
     }
 
-    if(this.data.id==="0") {console.log(this.data)}
-
     return (
       <circle id={this.nodeId + ":" + this.data.id}  key={this.data.id} data-node-anchor-id={this.data.id} cx={this.offsetX + this.data.position.x} cy={this.offsetY + this.data.position.y} 
         r="5" fill={fill} stroke="navy" onMouseEnter={this.anchorEnter} onMouseLeave={this.anchorLeave} onMouseDown={this.anchorMouseDown} onMouseUp={this.anchorMouseUp}

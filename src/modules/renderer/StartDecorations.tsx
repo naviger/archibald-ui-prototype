@@ -4,8 +4,6 @@ import { StyleObject } from "../structure/StyleObject";
 import Helpers from "../utilities/Helpers";
 
 export const getStartDecoration = (relationship:EdgeRelationships, pos:Position, origin:Position, theta:number, styles:StyleObject):JSX.Element => {
-  //console.log('DECORATION PARAMETERS: ', relationship, pos, origin, theta)
-  //let trfrm:string = "rotate(" + theta +")"
   const helpers = new Helpers()
 
   let dflt:JSX.Element = <span></span>// <circle cx={-3} cy={-3} r={3} fill='black' />
@@ -24,7 +22,6 @@ export const getStartDecoration = (relationship:EdgeRelationships, pos:Position,
       return <circle cx={pos.x} cy={pos.y} r={3} fill={styles.fill} />
       break
     case EdgeRelationships.Association:
-      // let pos1 = helpers.rotate(theta, pos, origin)
       break
     case EdgeRelationships.Composition:
       let pos1c = helpers.rotate(theta, {x:pos.x + 7, y:pos.y - 5}, pos)

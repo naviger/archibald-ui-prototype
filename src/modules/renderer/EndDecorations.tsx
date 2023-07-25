@@ -6,8 +6,6 @@ import Helpers from "../utilities/Helpers"
 
 
 export const getEndDecoration = (relationship:EdgeRelationships, pos:Position, origin:Position, theta:number, styles:StyleObject):JSX.Element => {
-  //console.log('DECORATION PARAMETERS: ', relationship, pos, origin, theta)
-  //let trfrm:string = "rotate(" + theta +")"
   const helpers = new Helpers()
   
   let dflt:JSX.Element =  <circle cx={-3} cy={-3} r={3} fill='black' />

@@ -88,8 +88,6 @@ export class BaseNode {
         break
     }
 
-    if(this.display.id==="0") {console.log(this.display)}
-
     return (
       <g id={this.display.id} key={this.display.nodeData.nodeId} data-node-id={this.display.nodeData.nodeId} onClick={this.nodeClick} onMouseDown={this.nodeDown} onPointerMove={this.nodeMove} onMouseUp={this.nodeUp} onMouseEnter={this.nodeEnter} onMouseLeave={this.nodeLeave} className={c}>
         { this.renderFrame(family, this.layer) }
@@ -103,7 +101,6 @@ export class BaseNode {
   }
 
   nodeLeave:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log('leave')
     if(this.display.status === NodeStatus.AddAnchor) {
       this.params.setReady(e)
     }
@@ -124,7 +121,6 @@ export class BaseNode {
   }
 
   nodeMove:MouseEventHandler<SVGGElement> = (e) => {
-  //console.log("MOVING ON UP:", this.display)
    if(this.display.status === NodeStatus.Moving) {
       this.params.inMove(e)
     } else if(this.display.status === NodeStatus.Locked) {
@@ -223,7 +219,6 @@ export class BaseNode {
 
   renderFrame(family:NodeFamily, layer:ArchimateLayer):JSX.Element {
     let cbg:string = this.getBackgroundColor(layer)
-    console.log('COLOR: ', this.display.nodeData.nodeId, "Layer:", layer, "Family:", family, cbg )
     let anchors:Array<JSX.Element> = []
 
     if(this.display?.isSelected) {
@@ -237,7 +232,6 @@ export class BaseNode {
     switch(this.display.nodeData.family) {
       case NodeFamily.ActiveStructureElement:
       case NodeFamily.CompositeElement:
-        if(this.display.id==="0") {console.log(this.display)}
         return (
           <g key={this.display.id}>
             <rect id={"n:" + this.display.id} className="node" x={this.display?.position.x} y={this.display?.position.y} width="180" height="100" fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"  />
@@ -252,7 +246,6 @@ export class BaseNode {
       case NodeFamily.PassiveStructureElement:
         let p2 = "M" + (this.display?.position.x) + " " + (this.display?.position.y + 20)
         p2+= " h180" 
-        if(this.display.id==="0") {console.log(this.display)}
         return ( 
           <g key={this.display.id} >
             <rect id={"n:" + this.display.id} className="node" x={this.display?.position.x} y={this.display?.position.y} width="180" height="100" fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"  />
@@ -275,7 +268,6 @@ export class BaseNode {
         p+= " Q" + (this.display.position.x) + ", " + (this.display.position.y + 100) + " " + (this.display.position.x) + ", " + (this.display.position.y + 90)
         p+= " v" + -80 
         p+= " Q" + (this.display.position.x) + ", " + (this.display.position.y) + " " + (this.display.position.x + 10) + ", " + (this.display.position.y)
-        if(this.display.id==="0") {console.log(this.display)}
         return (
           <g key={this.display.id}>
             <path  id={"n:" + this.display.id} d={p} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"/>
@@ -297,7 +289,6 @@ export class BaseNode {
         p3+= " l-10 -10"
         p3+= " v-80"
         p3+= " l10 -10"
-        if(this.display.id==="0") {console.log(this.display)}
         return (
           <g key={this.display.id} >
             <path id={"n:" + this.display.id} d={p3} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"  />

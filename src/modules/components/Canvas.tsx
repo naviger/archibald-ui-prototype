@@ -117,7 +117,6 @@ export const Canvas = (props:CanvasProps) => {
   let newEdge:JSX.Element = <span></span>
 
   let select = (type:string, id:string, offset:Position, position:Position) => {
-    console.log('SELECT', type, id, dragData)
     let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
       if(n.id === id && type === "node") {
         n.isSelected = true
@@ -142,7 +141,6 @@ export const Canvas = (props:CanvasProps) => {
   }
 
   let clearSelect = () => {
-    console.log('CLEAR', dragData)
     helpers.clearPointerEvents()
     setPropertyBox([])
     //clearSelect()
@@ -166,7 +164,6 @@ export const Canvas = (props:CanvasProps) => {
     pos.x = e.clientX
     pos.y = e.clientY
     const bbox = e.currentTarget.getBoundingClientRect()
-    console.log("MODE:", helpers.getEnumName(CanvasMode, mode))
     if(e.shiftKey && mode === CanvasMode.AddEdge) {
       let ed:EdgeDisplayInstance = newEdgeData
       ed.route[1] = {x:e.clientX - bbox.left, y:e.clientY-bbox.top}
@@ -203,13 +200,11 @@ export const Canvas = (props:CanvasProps) => {
             //const isMiddle:boolean = dragData.currentId.split(":")[1].endsWith(".5")
             const target:number = Number.parseInt(dragData.currentId.split(":")[1].split(".")[0])
             const a:HTMLElement = document.getElementById(dragData.currentId) as HTMLElement
-            console.log(a, dragData.currentId)
             const constraint:Number = Number.parseInt(a.getAttribute("data-constraint") as string)
             
             ed.route.forEach((el) => {  // <<<<<<<<<<<<<<<< iterate through route of the edge
-              //console.log("TEST: ", isMiddle, constraint, i, target)
               let pt:Position = structuredClone(ed.route[i])
-              let mod:number = 1
+              //let mod:number = 1
               
               if(constraint === EdgeConstraints.Vertical || constraint === EdgeConstraints.None) {
                 if(i === target - 1 && ed.route[i].x === ed.route[target].x) {
@@ -319,7 +314,6 @@ export const Canvas = (props:CanvasProps) => {
     } else if(mode===CanvasMode.MovePropertyBox) {
       if(e && (e.target instanceof Element) && (e.currentTarget) && e.button === 0){
         let box:HTMLElement = document.getElementById("edge-property-box") as HTMLElement
-        console.log('Move Box', e.currentTarget.id, e.clientX, e.clientY)
         if(box) {
           box.setAttribute("style", "left: " + (e.clientX - bbox.left) + "px; top: " + (e.clientY - bbox.top) + "px;")
         } 
@@ -388,7 +382,6 @@ export const Canvas = (props:CanvasProps) => {
             if(n.id === e.currentTarget.id) {
               n.isSelected=false
               n.status = NodeStatus.Moving
-              console.log("SET NODE POSITION!")
               n.oldPosition = {x: n.position.x, y: n.position.y}
             } 
             return n
@@ -406,8 +399,6 @@ export const Canvas = (props:CanvasProps) => {
         const el = e.target.getAttribute("data-element")
         const bbox = e.currentTarget.getBoundingClientRect()
         if(el=="frame" && e.currentTarget.id == dragData.currentId && !e.shiftKey && mode === CanvasMode.MoveNode) {
-          
-          console.log('IN MOVE (Move Node): ')
           let ea:Array<EdgeDisplayInstance> = edges.map((ed) => {
             if(ed.edgeData.sourceObject === dragData.currentId && ed.style.layout === EdgeLayout.Bezier ) {
               let p:Array<Position> = structuredClone(ed.route)
@@ -459,7 +450,6 @@ export const Canvas = (props:CanvasProps) => {
               n.position.x = e.pageX - dragData.offset.x
               n.position.y = e.pageY - (dragData.offset.y +30)
               n.isSelected = true;
-              console.log('IN MOVE (Add Edge): ')
             } 
             return n
           })
@@ -534,9 +524,6 @@ export const Canvas = (props:CanvasProps) => {
           
           const nid= e.target.id.split(":")[0]
           const aid = e.target.id.split(":")[1]
-
-          console.log('SA:', e.target, nid, aid)
-
           if(e.shiftKey) {
             let nn:NodeDisplayInstance = nodes.find((nd)=> { return nd.id === nid}) as NodeDisplayInstance
             let aa:NodeAnchorData = nn.anchors.find((an) => {return an.id === aid} ) as NodeAnchorData
@@ -553,7 +540,6 @@ export const Canvas = (props:CanvasProps) => {
         }
       },
       setNewEdgeEndPoint: (e:MouseEvent)=> {
-        //console.log("Attach End Point:", e.target)
         let ed:EdgeDisplayInstance = structuredClone(newEdgeData);
         let hed:EdgeDisplayInstance = structuredClone(newEdgeData);
         if(e.target && (e.target instanceof Element) && mode === CanvasMode.AddEdge) {
@@ -563,8 +549,6 @@ export const Canvas = (props:CanvasProps) => {
           let an = dn?.anchors.find((a) => { return a.id === aid}) as NodeAnchorData
           ed.edgeData.destinationObject = nid
           ed.destinationAnchor = aid
-          console.log(ed.route)
-          //ed.route = [{x: dn.position.x + an?.position.x, y: dn.position.y + an.position.y},{x: dn.position.x + an?.position.x, y: dn.position.y + an.position.y}]
           ed.id = crypto.randomUUID()
           ed.isSelected=true
           ed.isVisible=true
@@ -598,9 +582,6 @@ export const Canvas = (props:CanvasProps) => {
             return n;
           })
           setNodes(na)
-          
-          console.log('NEW EDGE:', ea, ed)
-          //edges.push(ed)
           hed.route = [{x:-1, y:-1}, {x:-1, y:-1}]
           setNewEdgeData(hed)
           setEdges(ea)
@@ -900,21 +881,15 @@ export const Canvas = (props:CanvasProps) => {
           data:(edges.find((ed) => { return ed.id === id}))?.edgeData as Edge,
           dataRenderer: EdgeDataRenderer,
           dragStart: (e:React.PointerEvent<HTMLDivElement>) => {
-            //console.log("START DRAG:", e)
             if(e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey && mode === CanvasMode.Ready){
               let nodeEls = document.getElementsByClassName("toggle-pointer")
               for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-pointer-events"); }
-              // let el:Element|null = document.getElementById("edge-property-box")
-              // if(el) el.classList.add("no-pointer-events")
-              // el = document.getElementById("edge-inner-property-panel")
-              // if(el) el.classList.add("no-pointer-events")
               const bbox = e.currentTarget.getBoundingClientRect();
               setDragData({type: 'property-box', currentId: e.currentTarget.id, offset:{x: e.clientX - bbox.left, y:e.clientY - bbox.top}, position:{x: e.clientX, y: e.clientY}})
               setMode(CanvasMode.MovePropertyBox)
             }
           },
           dragDone: (e:React.PointerEvent<HTMLDivElement>) => {
-            console.log("STOP DRAG:", e)
             if(e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey && mode === CanvasMode.Ready){
               // let el:Element|null = document.getElementById("edge-property-box")
               // if(el) el.classList.remove("no-pointer-events")
@@ -924,21 +899,18 @@ export const Canvas = (props:CanvasProps) => {
               for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.remove("no-pointer-events"); }
               setDragData({type: 'none', currentId: "", offset:{x: -1, y:-1}, position:{x: -1, y: -1}})
               setMode(CanvasMode.Ready)
-    
             }
           },
           setEdgeLayout: (id:string, layout:EdgeLayout) => {
             helpers.changeEdgeLayout(edges, nodes, id, layout, setEdges)
           },
           setEdgeType: (tgt:string, id:EdgeRelationships) => {
-            console.log("SET EDGE TYPE:", tgt, id, helpers.getEnumName(EdgeRelationships, id)) //
             let ea:EdgeDisplayInstance[] = edges.map((ed) => {
               if(ed.edgeData.edgeId === tgt) {
                 ed.edgeData.type = id
               }
               return ed
             })
-            console.log(ea)
             setEdges(ea)
           },
           remove: () => {
@@ -950,7 +922,6 @@ export const Canvas = (props:CanvasProps) => {
         }
 
         let propbox = <EdgePropertyBox {...params} />
-        //let pp = propbox.Render()
         propertyBox.push(propbox)
 
         let nodeEls = document.getElementsByClassName("node");
@@ -970,94 +941,52 @@ export const Canvas = (props:CanvasProps) => {
             tgt.setAttribute("stroke-width", ed.style.weight);
             tgt.setAttribute("stroke", ed.style.color);
           } else {
-            console.log("No Style: ", ed);
           }
         }
       }
     },
     anchorParams: {
       selectAnchor: (e: React.PointerEvent<SVGElement>) => {
-        console.log('SELECT EDGE ANCHOR:', e.currentTarget)
         if (e && (e.target instanceof Element) && (e.currentTarget)) {
           const id = e.target.getAttribute("id");
           const bbox = e.currentTarget.getBoundingClientRect();
-          console.log("SET MODE: ", CanvasMode.MoveEdgeAnchor, helpers.getEnumName(CanvasMode, CanvasMode.MoveEdgeAnchor));
           setMode(CanvasMode.MoveEdgeAnchor);
           select('edgeAnchor', id as string, { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, { x: e.clientX, y: e.clientY })
-          //setDragData({ type: 'edgeAnchor', currentId: id ? id : "", offset: { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, position: { x: e.clientX, y: e.clientY }, data: { x: e.pageX - (e.clientX - bbox.left), y: e.pageY - (e.clientY - bbox.top) } });
         }
       },
       moveAnchor: (e: React.MouseEvent<SVGElement>) => {
-        //console.log('MOVE EDGE:', e.target)
-        // if (e && (e.target instanceof Element) && mode === CanvasMode.MoveEdge) {
-        //   const eid = e.target.getAttribute("id")?.split(":")[0];
-        //   const aid = e.target.getAttribute("id")?.split(":")[1];
-
-        //   const con = Number.parseInt(e.target.getAttribute("data-constraint") as string);
-        //   const status = Number.parseInt(e.target.getAttribute("data-status") as string);
-        //   //console.log("ID:", e.target.id, eid, aid)
-        //   if (eid && aid && (status != EdgeAnchorStatus.Locked)) {
-        //     // let ed:IEdgeDisplayInstance = edges.find((t) => {return t.id === eid}) as IEdgeDisplayInstance
-        //     // if(con === EdgeConstraints.Vertical) {
-        //     //   console.log("V:", e.target.id, eid, aid)
-        //     // }
-        //     // else if(con === EdgeConstraints.Horizontal) {
-        //     //   console.log("H:", eid, aid)
-        //     // }
-        //     // else if(con === EdgeConstraints.Horizontal) {
-        //     //   console.log("F", eid, aid)
-        //     // }
-        //   }
-        // }
       },
       dropAnchor: (e: React.PointerEvent<SVGElement>) => {
-        console.log('DROP ANCHOR')
         setMode(CanvasMode.Ready);
         setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } });
         helpers.clearPointerEvents()
       }
     },
     dragDone: (e: React.PointerEvent<SVGElement>) => {
-      console.log('DRAG DONE')
       if(mode === CanvasMode.MoveEdgeAnchor) {
         setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
       }
     },
     handleParams: {
       setSelectedHandle: (e: React.PointerEvent<SVGElement>) => {
-        console.log("SELECT EDGE HANDLE: ", e.currentTarget)
         if (e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey ) {
           const id = e.target.getAttribute("id")
           const bbox = e.currentTarget.getBoundingClientRect()
-          console.log('start drag')
           setMode(CanvasMode.MoveEdgeHandle)
           select('edgeHandle', id as string,  { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, { x: e.clientX, y: e.clientY })
-          //setDragData({ type: 'edgeHandle', currentId: id ? id : "", offset: { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, position: { x: e.clientX, y: e.clientY } });
         }
       },
       moveHandle: (e: React.PointerEvent<SVGElement>) => {
-        console.log('Move Handle');
         if (e && (e.target instanceof Element) && (e.currentTarget) && mode === CanvasMode.MoveEdgeHandle) {
           const eid = e.target.getAttribute("id")?.split(":")[0];
           const hid = e.target.getAttribute("id")?.split(":")[1];
 
           if (eid && hid) {
             let ed: EdgeDisplayInstance = edges.find((t) => { return t.id === eid; }) as EdgeDisplayInstance;
-            // if(con === EdgeConstraints.Vertical) {
-            //   console.log("V:", e.target.id, eid, aid)
-            // }
-            // else if(con === EdgeConstraints.Horizontal) {
-            //   console.log("H:", eid, aid)
-            // }
-            // else if(con === EdgeConstraints.Horizontal) {
-            //   console.log("F", eid, aid)
-            // }
           }
         }
       }, endMoveHandle: (e: React.PointerEvent<SVGElement>) => {
-        console.log("END HANDLE MOVE!");
         setMode(CanvasMode.Ready);
-        //clearSelect()
         setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } });
       }
     },

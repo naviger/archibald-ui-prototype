@@ -25,14 +25,6 @@ export const Dropdown = (props:DropdownProps):JSX.Element =>  {
   
   let renderedItems:JSX.Element[] =[]
   
-  // const select:MouseEventHandler<HTMLDivElement> = (e) => {
-  //   console.log('SELECT:', e.currentTarget.id)
-  //   if(props.enabled) {
-  //     props.onSelect(e.currentTarget.getAttribute('data-id') as string, e.currentTarget.getAttribute('data-target') as string)
-  //     setSelectedValue(e.currentTarget.getAttribute('data-id') as string)
-  //   } 
-  // }
-
   const getSelectedName = (id:string):string => {
     return props.items.find((i) => {return i.id === id})?.value as string
   }
@@ -41,7 +33,6 @@ export const Dropdown = (props:DropdownProps):JSX.Element =>  {
  
   const selectItem = (e:React.PointerEvent<HTMLDivElement>) => {
     const el = document.getElementById(e.currentTarget.id)
-    console.log('EL:', e, e.currentTarget, el)
     const id:string = el?.getAttribute("data-id") as string
     const tgt:string = el?.getAttribute("data-target") as string
     props.onSelect(tgt, Number.parseInt(id.split(":")[1]))

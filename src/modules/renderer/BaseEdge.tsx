@@ -66,15 +66,13 @@ export class BaseEdge {
   }
 
   edgeDown:MouseEventHandler<SVGGElement> = (e) => {
-    this.setTop()//console.log("DOWN", this.display.id)
+    this.setTop()
   }
 
   edgeMove:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log("MOVE", this.display.id)
   }
 
   edgeUp:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log("Mouse Up:", this.display.id)
     this.params.dragDone(e)
     this.removeTop()
   }
@@ -91,7 +89,7 @@ export class BaseEdge {
     end = <circle cx={-3} cy={-3} r={3} fill='black' />
     let i:number = 0;
     let ptprev:Position = this.display.route[0]
-    let eaprev:EdgeAnchor
+    //let eaprev:EdgeAnchor
 
     const styles:StyleObject = {
       fill:this.strokeColor,
@@ -100,7 +98,6 @@ export class BaseEdge {
       strokeStyle: helpers.getLineStyle(this.display.edgeData.type, this.strokeStyle)
     }
 
-    //console.log("LINE STYLE: ", this.display.edgeData.edgeId, helpers.getLineStyle(this.display.edgeData.type, this.strokeStyle))
     switch(this.display.style.layout) {
       case EdgeLayout.Straight: 
         let s:Position = this.display.route[0] as Position
@@ -112,10 +109,8 @@ export class BaseEdge {
         }
         p = "" + s.x + ", " + s.y + " " + e.x + ", " + e.y
         let theta:number = helpers.getStraightAngle(s, e)
-        //console.log("THETA:", theta)
         start = getStartDecoration(this.display.edgeData.type, s, e, theta, styles)
         end = getEndDecoration(this.display.edgeData.type, e, e, theta, styles)
-        if(this.display.id==="0") {console.log(this.display)}
         
         return (
           <g key={this.display.id}  >
@@ -291,8 +286,6 @@ export class BaseEdge {
         )
         break
       case EdgeLayout.Bezier:
-        if(this.display.id==="0") {console.log(this.display)}
-
         let theta3Start = helpers.getStraightAngle(this.display.route[0], this.display.route[1])
         start = getStartDecoration(this.display.edgeData.type, this.display.route[0], this.display.route[1], theta3Start, styles)
 

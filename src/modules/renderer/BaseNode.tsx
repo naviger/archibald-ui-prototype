@@ -231,6 +231,7 @@ export class BaseNode {
 
     switch(this.display.nodeData.family) {
       case NodeFamily.ActiveStructureElement:
+      case NodeFamily.PhysicalStructureNode: 
       case NodeFamily.CompositeElement:
         return (
           <g key={this.display.id}>

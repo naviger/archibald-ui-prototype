@@ -783,6 +783,94 @@ export const GetTestData = ():IModel => {
     ]
   }
 
+  let nt14:NodeDisplayInstance = {
+    id:'nt14-1',
+    nodeData: { nodeId: 'node-t14', name: "Technology:Equipment", type: NodeType.TechnologyEquipment, family: NodeFamily.PhysicalStructureNode, data: {}, dimensions: {height:100, width:180} },
+    position: {x: 1050, y: 1150 },
+    oldPosition: {x: 850, y: 1150 },
+    size: {height: 100, width: 180},
+    annotation:'',
+    isSelected:false,
+    isVisible:true,
+    status: NodeStatus.Ready,
+    anchors: [
+      {id: 's1', position: {x: 0, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's2', position: {x: 90, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's3', position: {x: 180, y:0 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's4', position: {x: 0, y:50 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's5', position: {x: 180, y:50 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's6', position: {x: 0, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's7', position: {x: 90, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's8', position: {x: 180, y:100 }, status: AnchorStatus.Available, edges:[]}
+    ]
+  }
+
+  let nt15:NodeDisplayInstance = {
+    id:'nt15-1',
+    nodeData: { nodeId: 'node-t15', name: "Technology:Facility", type: NodeType.TechnologyFacility, family: NodeFamily.PhysicalStructureNode, data: {}, dimensions: {height:100, width:180} },
+    position: {x: 1250, y: 1150 },
+    oldPosition: {x: 850, y: 1150 },
+    size: {height: 100, width: 180},
+    annotation:'',
+    isSelected:false,
+    isVisible:true,
+    status: NodeStatus.Ready,
+    anchors: [
+      {id: 's1', position: {x: 0, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's2', position: {x: 90, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's3', position: {x: 180, y:0 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's4', position: {x: 0, y:50 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's5', position: {x: 180, y:50 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's6', position: {x: 0, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's7', position: {x: 90, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's8', position: {x: 180, y:100 }, status: AnchorStatus.Available, edges:[]}
+    ]
+  }
+
+  let nt16:NodeDisplayInstance = {
+    id:'nt16-1',
+    nodeData: { nodeId: 'node-t16', name: "Technology:Distribution Network", type: NodeType.TechnologyDistributionNetwork, family: NodeFamily.PhysicalStructureNode, data: {}, dimensions: {height:100, width:180} },
+    position: {x: 1450, y: 1150 },
+    oldPosition: {x: 850, y: 1150 },
+    size: {height: 100, width: 180},
+    annotation:'',
+    isSelected:false,
+    isVisible:true,
+    status: NodeStatus.Ready,
+    anchors: [
+      {id: 's1', position: {x: 0, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's2', position: {x: 90, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's3', position: {x: 180, y:0 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's4', position: {x: 0, y:50 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's5', position: {x: 180, y:50 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's6', position: {x: 0, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's7', position: {x: 90, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's8', position: {x: 180, y:100 }, status: AnchorStatus.Available, edges:[]}
+    ]
+  }
+
+  let nt17:NodeDisplayInstance = {
+    id:'nt17-1',
+    nodeData: { nodeId: 'node-t17', name: "Technology:Material>", type: NodeType.TechnologyMaterial, family: NodeFamily.PhysicalStructureNode, data: {}, dimensions: {height:100, width:180} },
+    position: {x: 1650, y: 1150 },
+    oldPosition: {x: 850, y: 1150 },
+    size: {height: 100, width: 180},
+    annotation:'',
+    isSelected:false,
+    isVisible:true,
+    status: NodeStatus.Ready,
+    anchors: [
+      {id: 's1', position: {x: 0, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's2', position: {x: 90, y:0 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's3', position: {x: 180, y:0 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's4', position: {x: 0, y:50 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's5', position: {x: 180, y:50 }, status: AnchorStatus.Available, edges:[]},
+      {id: 's6', position: {x: 0, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's7', position: {x: 90, y:100 }, status: AnchorStatus.Available, edges:[]}, 
+      {id: 's8', position: {x: 180, y:100 }, status: AnchorStatus.Available, edges:[]}
+    ]
+  }
+
   let nm1:NodeDisplayInstance = {
     id:'nm1-1',
     nodeData: { nodeId: 'node-m1', name: "Motivation:Stakeholder", type: NodeType.MotivationStakeholder, family: NodeFamily.MotivationElement, data: {}, dimensions: {height:100, width:180} },
@@ -1299,6 +1387,10 @@ export const GetTestData = ():IModel => {
   m.nodes.push(nt11);
   m.nodes.push(nt12);
   m.nodes.push(nt13);
+  m.nodes.push(nt14);
+  m.nodes.push(nt15);
+  m.nodes.push(nt16);
+  m.nodes.push(nt17);
   m.nodes.push(nm1);
   m.nodes.push(nm2);
   m.nodes.push(nm3);

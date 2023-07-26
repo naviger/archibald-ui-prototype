@@ -71,6 +71,10 @@ import { EdgePropertyBox, EdgePropertyBoxProps } from "./EdgePropertyBox"
 import { EdgeDataRenderer } from "./EdgeDataForm"
 
 import './Canvas.css'
+import { TechnologyEquipmentNode } from "../renderer/TechnologyEquipmentNode"
+import { TechnologyFacilityNode } from "../renderer/TechnologyFacilityNode"
+import { TechnologyDistributionNetworkNode } from "../renderer/TechnologyDistributionNetworkNode"
+import { TechnologyMaterialNode } from "../renderer/TechnologyMaterialNode"
 
 export type CanvasProps = {
   modelData?: IModel,
@@ -785,6 +789,22 @@ export const Canvas = (props:CanvasProps) => {
           case NodeType.TechnologyNode:
             let nitn:JSX.Element = new TechnologyNodeNode(n, np).Render()
             els.push(nitn)
+            break
+          case NodeType.TechnologyEquipment:
+            let niteq:JSX.Element = new TechnologyEquipmentNode(n, np).Render()
+            els.push(niteq)
+            break
+          case NodeType.TechnologyFacility:
+            let nitfa:JSX.Element = new TechnologyFacilityNode(n, np).Render()
+            els.push(nitfa)
+            break
+          case NodeType.TechnologyDistributionNetwork:
+            let nitdn:JSX.Element = new TechnologyDistributionNetworkNode(n, np).Render()
+            els.push(nitdn)
+            break
+          case NodeType.TechnologyMaterial:
+            let nitm:JSX.Element = new TechnologyMaterialNode(n, np).Render()
+            els.push(nitm)
             break
           case NodeType.MotivationAssesment:
             let nima:JSX.Element = new MotivationAssessmentNode(n, np).Render()

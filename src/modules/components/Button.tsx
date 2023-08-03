@@ -1,9 +1,7 @@
-import {bundleIcon} from "@fluentui/react-icons"
 import { MouseEventHandler } from "react"
 import './Button.css'
 
 export type ButtonProps = {
-  // key:string,
   iconName:string
   onClick:Function
   enabled:boolean
@@ -17,7 +15,6 @@ export const Button = (props:ButtonProps) => {
   }
   const click:MouseEventHandler<HTMLDivElement> = (e) => {
     if(props.enabled) props.onClick(e) 
-    //return true
   }
 
   const unknown = <svg><text>?</text></svg>

@@ -4,7 +4,7 @@ export const layouts = [
   'SS:Top,Top:3:,:[sa.x|e.tl.t],[|],[|],[da.x|e.tl.t]',
   'SS:Top,Top:4:,s.x + s.h + ((da.y - (s.y + s.h))/2):[sa.x|sp.y],[e.br.r|sp.y],[e.br.r|e.tl.t],[da.x|e.tl.t]',
   'SS:Top,Top:5:,:[sa.x|e.tl.t],[|],[|],[da.x|e.tl.t]',
-  'SS:Top,Top:6:,d.y + d.h + ((s.y - (d.y + d.h))/2) :[sa.x|sp.y],[e.br.r|sp.y],[e.br.r|e.tl.t],[da.x|r.tl.t]',
+  'SS:Top,Top:6:,d.y + d.h + ((s.y - (d.y + d.h))/2) :[sa.x|sp.y],[e.br.r|sp.y],[e.br.r|e.tl.t],[da.x|e.tl.t]',
   'SS:Top,Top:7:,:[sa.x|e.tl.t],[|],[|],[da.x|e.tl.t]',
   'SS:Top,Top:8:,:[sa.x|e.tl.t],[|],[|],[da.x|e.tl.t]',
   'SS:Top,Top:9:,:[sa.x|e.tl.t],[|],[|],[da.x|e.tl.t]',

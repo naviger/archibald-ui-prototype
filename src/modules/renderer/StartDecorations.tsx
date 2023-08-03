@@ -6,7 +6,7 @@ import Helpers from "../utilities/Helpers";
 export const getStartDecoration = (relationship:EdgeRelationships, pos:Position, origin:Position, theta:number, styles:StyleObject):JSX.Element => {
   const helpers = new Helpers()
 
-  let dflt:JSX.Element = <span></span>// <circle cx={-3} cy={-3} r={3} fill='black' />
+  let dflt:JSX.Element = <span></span>
   let pts:string = ""
   switch(relationship) {
     case EdgeRelationships.Access:

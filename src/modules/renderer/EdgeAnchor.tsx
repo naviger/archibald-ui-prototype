@@ -1,10 +1,5 @@
 import { MouseEventHandler } from "react";
-import { JsxElement } from "typescript";
-//import {color} from "../Archimate/archimateNodes";
-// import { AnchorStatus } from "../enums/enumAnchorStatus";
 import { EdgeAnchorParameters } from "../structure/EdgeAnchorParameters";
-// import { EdgeAnchorData } from "../structure/EdgeAnchorData";
-// import { INodeDisplayInstance } from "../structure/INode";
 import { Color } from "../utilities/Color";
 import { EdgeAnchorStatus } from "../enums/enumEdgeAnchorStatus";
 import { EdgeConstraints } from "../enums/enumEdgeConstraints";
@@ -12,7 +7,6 @@ import { Position } from "../structure/Position";
 
 export class EdgeAnchor {
   constructor(id:string, offset:Position, params:EdgeAnchorParameters, status: EdgeAnchorStatus, constraints: EdgeConstraints) {
-    //this.data = data
     this.id = id
     this.offset = offset
     this.params = params
@@ -27,15 +21,14 @@ export class EdgeAnchor {
   constraints:number
 
   anchorMouseDown:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.selectAnchor(e)
+    this.params.selectAnchor(e.currentTarget.id, {x:e.clientX, y: e.clientY})
   }
 
   anchorMouseMove:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.moveAnchor(e)
   }
 
   anchorMouseUp:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.dropAnchor(e)
+    this.params.dropAnchor(e.currentTarget.id)
   }
 
   render():JSX.Element {

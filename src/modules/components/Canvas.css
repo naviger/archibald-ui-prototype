@@ -21,10 +21,6 @@
 foreignObject {
   pointer-events: none; 
 }
-/* 
-.card-icon {
-  /* pointer-events: none;  * /
-} */
 
 svg {
   cursor: initial;
@@ -80,3 +76,27 @@ svg {
   top:50px;
   left:20px;
 }
+
+.junction {
+  pointer-events:none;
+}
+.junction:hover, .junction-shadow:hover {
+  border-color: blueviolet;
+  cursor:grab;
+}
+
+.junction-anchor:hover {
+  cursor:pointer;
+} 
+
+.junction-text {
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9em;
+  width: 20px;
+  pointer-events:none;
+}
+
+.junction-text.or {
+  padding-left:4px;
+} 

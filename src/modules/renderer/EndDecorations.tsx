@@ -28,7 +28,6 @@ export const getEndDecoration = (relationship:EdgeRelationships, pos:Position, o
       return  (<polyline points={pts} width={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} fill={styles.strokeColor} />)
       break
     case EdgeRelationships.Association:
-      // let pos1 = helpers.rotate(theta, pos, origin)
       let pos2 = helpers.rotate(theta, {x:pos.x - 7, y:pos.y - 5}, pos)
       pts = "" + pos.x + "," + pos.y + " " + (pos2.x) + "," + (pos2.y)
       

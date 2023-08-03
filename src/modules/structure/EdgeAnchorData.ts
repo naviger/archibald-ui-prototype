@@ -1,8 +1,5 @@
-import { Position } from "./Position";
+import { Anchorable } from "./Anchorable";
 
 export type EdgeAnchorData = {
-  id: string
-  position: Position
-  status: number
   constraints: number
-}
+} & Anchorable

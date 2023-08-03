@@ -1,6 +1,5 @@
-import {useState, MouseEventHandler } from "react"
+import {useState } from "react"
 import './Dropdown.css'
-import { render } from "@testing-library/react"
 
 export interface IDropdownItem {
   id:string

@@ -1,12 +1,9 @@
 import React, { MouseEventHandler } from "react"
-import { EdgeDisplayInstance } from "../structure/Edge"
-import { Button, ButtonProps } from "./Button"
+import { Button, } from "./Button"
 import './EdgePropertyBox.css'
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { Position } from "../structure/Position"
-import { StateVariable, stateSet } from "../structure/StateVariable"
 import { Dropdown, IDropdownItem } from "./Dropdown"
-import { BaseEdge } from "../renderer/BaseEdge"
 import { getStartDecoration } from "../renderer/StartDecorations"
 import { EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { StyleObject } from "../structure/StyleObject"
@@ -28,18 +25,18 @@ export type EdgePropertyBoxProps = {
 
 export const EdgePropertyBox = (props:EdgePropertyBoxProps):JSX.Element => { 
   
-  const flyoutOpen = <svg>
+  const flyoutOpen = <svg width="10">
     <g>
       <path d="m 0,110 l 0 -90 a 10 10 1 0 1 10 10 l 0 95 a 10 10 1 0 1 -10 10" fill="grey"/>
       <polyline points="2,75 2,83 8,79 2,75" fill="white" />
     </g>
   </svg>
 
-const flyoutClose = <svg>
-<g>
-  <path d="m 0,110 l 0 -90 a 10 10 1 0 1 10 10 l 0 95 a 10 10 1 0 1 -10 10" fill="grey"/>
-  <polyline points="8,75 8,83 2,79 8,75" fill="white" />
-</g>
+const flyoutClose = <svg width="10">
+  <g>
+    <path d="m 0,110 l 0 -90 a 10 10 1 0 1 10 10 l 0 95 a 10 10 1 0 1 -10 10" fill="grey"/>
+    <polyline points="8,75 8,83 2,79 8,75" fill="white" />
+  </g>
 </svg>
 
   const [showData, setShowData] = React.useState<boolean>(false)
@@ -68,12 +65,12 @@ const flyoutClose = <svg>
   }
   
   const onDragHandleMouseDown:MouseEventHandler<SVGSVGElement> = (e) => {
-    props.dragStart(e)
+    props.dragStart(props.id, e.shiftKey, {x:e.clientY, y:e.clientY})
     setInDrag(true)
   }
 
   const onDragHandleMouseUp:MouseEventHandler<SVGSVGElement> = (e) => {
-    props.dragDone(e)
+    props.dragDone(props.id, e.shiftKey)
     setInDrag(false)
   }
 

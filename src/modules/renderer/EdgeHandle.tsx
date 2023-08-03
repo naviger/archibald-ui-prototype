@@ -13,7 +13,6 @@ import { Position } from "../structure/Position";
 
 export class EdgeHandle {
   constructor(id:string, offset:Position, pivot:Position, params:EdgeHandleParameters, status: EdgeAnchorStatus, constraints: EdgeConstraints) {
-    //this.data = data
     this.id = id
     this.offset = offset
     this.pivot = pivot
@@ -22,7 +21,6 @@ export class EdgeHandle {
     this.constraints = constraints
   }
 
-  // data:IEdgeAnchor
   id:string
   offset:Position
   pivot:Position
@@ -31,15 +29,15 @@ export class EdgeHandle {
   constraints:number
 
   handleMouseDown:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setSelectedHandle(e)
+    this.params.setSelectedHandle(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY })
   }
 
   handleMouseMove:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.moveHandle(e)
+    this.params.moveHandle(e.currentTarget.id)
   }
 
   handleMouseUp:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.endMoveHandle(e)
+    this.params.endMoveHandle(e.currentTarget.id)
   }
 
 

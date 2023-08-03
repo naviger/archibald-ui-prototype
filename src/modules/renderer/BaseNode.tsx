@@ -57,20 +57,29 @@ export class BaseNode {
     el2.setAttribute("y2", y2.toString())  
   }
 
-  Render():JSX.Element {
+  clearAddAnchor() {
+    let tgt = document.getElementById("addAnchor")
+    tgt?.setAttribute("visibility", "hidden")
+  }
 
-    let family:NodeFamily = NodeFamily.ActiveStructureElement; //default
-    let layerStr=this.display.nodeData.type
-    let layer:ArchimateLayer=ArchimateLayer.Technology
+  isAnchorHover = () => {
+    let el = document.getElementById(this.display.id)
+    return el?.getAttribute("data-hover") === "true"? true : false 
+  }
+
+  Render():React.JSX.Element {
+
+    let family:NodeFamily = NodeFamily.ActiveStructureElement;
+
     if(this.display) {
       family = this.display.nodeData.family
     }
 
     let addAnchor = undefined
 
-    if(this.display.status === NodeStatus.AddAnchor) {
+    if(this.display.status === NodeStatus.AddAnchor && !this.isAnchorHover()) {
       addAnchor = this.renderAddAnchor(this.display.position);
-    } 
+    }
 
     let c:string = "node "
     switch(this.display.status) {
@@ -89,7 +98,7 @@ export class BaseNode {
     }
 
     return (
-      <g id={this.display.id} key={this.display.nodeData.nodeId} data-node-id={this.display.nodeData.nodeId} onClick={this.nodeClick} onMouseDown={this.nodeDown} onPointerMove={this.nodeMove} onMouseUp={this.nodeUp} onMouseEnter={this.nodeEnter} onMouseLeave={this.nodeLeave} className={c}>
+      <g id={this.display.id} key={this.display.nodeData.nodeId} data-node-id={this.display.nodeData.nodeId} onClick={this.nodeClick} onMouseDown={this.nodeDown} onMouseMove={this.nodeMove} onMouseUp={this.nodeUp} onMouseEnter={this.nodeEnter} onMouseLeave={this.nodeLeave} className={c}>
         { this.renderFrame(family, this.layer) }
         { addAnchor}
       </g>
@@ -97,37 +106,43 @@ export class BaseNode {
   }
 
   nodeEnter:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setHoverNode(e)
+    this.params.setHover(e.currentTarget.id)
   }
 
   nodeLeave:MouseEventHandler<SVGGElement> = (e) => {
     if(this.display.status === NodeStatus.AddAnchor) {
-      this.params.setReady(e)
+      this.params.setReady(e.currentTarget.id)
     }
-    this.params.clearHoverNode(e)
+    this.params.clearHover(e.currentTarget.id)
   }
 
   nodeClick:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setSelectedNode(e)
+    this.params.setSelected(e.currentTarget.id)
   }
 
   nodeDown:MouseEventHandler<SVGGElement> = (e) => {
-    if(e.shiftKey) {
-      this.params.addAnchor(e, this.addAnchorPos)
+    if(e.altKey) {
+      this.params.addAnchor(e.currentTarget.id, this.addAnchorPos)
     } else if(this.display.status === NodeStatus.Ready) {
       this.setTop()
-      this.params.startMoveNode(e)
+      this.params.startMove(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY })
     }
   }
 
   nodeMove:MouseEventHandler<SVGGElement> = (e) => {
-   if(this.display.status === NodeStatus.Moving) {
-      this.params.inMove(e)
+    let tgt = document.getElementById("addAnchor")
+    tgt?.setAttribute("visibility", "visible")
+    if(this.display.status === NodeStatus.Moving) {
+      this.params.inMove(e.currentTarget.id, e.shiftKey,{x:e.pageX, y:e.pageY} )
     } else if(this.display.status === NodeStatus.Locked) {
 
-    } else if(this.display.status === NodeStatus.Ready && e.shiftKey) {
-      this.params.inAddAnchor(e)
-    } else  if(this.display.status === NodeStatus.AddAnchor && e.shiftKey){
+    } else if(this.display.status === NodeStatus.Ready && e.altKey) {
+      this.params.inAddAnchor(e.currentTarget.id)
+    } else if(this.display.status === NodeStatus.AddAnchor && !e.altKey){
+      this.clearAddAnchor()
+      this.params.setReady(e)
+    } else  if(this.display.status === NodeStatus.AddAnchor ){
+      
       let svg:SVGSVGElement = document.querySelector("svg") as SVGSVGElement
       const bbox = svg.getBoundingClientRect()
       let pt:Position = { x:e.clientX - bbox.left, y:e.clientY - bbox.top}
@@ -152,14 +167,12 @@ export class BaseNode {
    
       let pos:Position = { x: pt.x, y: pt.y}
       this.setAddAnchorPosition(pos)
-    } else  if(this.display.status === NodeStatus.AddAnchor && !e.shiftKey){
-      this.params.setReady(e)
-    }
+    } 
   }
 
   nodeUp:MouseEventHandler<SVGGElement> = (e) => {
+    this.params.endMove(e.currentTarget.id)
     this.removeTop()
-    this.params.endMoveNode(e)
   }
 
   renderIcon(pos:Position):JSX.Element {
@@ -176,12 +189,6 @@ export class BaseNode {
       case ArchimateLayer.Business:
         cbg = ArchimateColors.Business
         break
-      // case ArchimateLayer.Composite:
-      //   cbg = ArchimateColors.Composite
-      //   break
-      // case ArchimateLayer.ImplementationAndMigration:
-      //   cbg = ArchimateColors.ImplementationAndMigration
-      //   break
       case ArchimateLayer.Motivation:
         cbg = ArchimateColors.Motivation
         break
@@ -211,7 +218,7 @@ export class BaseNode {
     let y1 = pos.y -5
     let y2 = (pos.y + 5) 
 
-    return <g>
+    return <g id="addAnchor">
       <line id="addanchor-line1" x1={x1} x2={x2} y1={y1} y2={y2} stroke="rgb(255,0,0)" strokeWidth="1"></line>
       <line  id="addanchor-line2" x1={x2} x2={x1} y1={y1} y2={y2} stroke="rgb(255,0,0)" strokeWidth="1"></line>
     </g>

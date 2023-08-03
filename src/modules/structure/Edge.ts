@@ -1,7 +1,7 @@
 import { EdgeLayout } from '../enums/enumEdgeLayout'
 import { EdgeRelationships } from '../enums/enumEdgeRelationships'
 import { Position } from './Position'
-import { EdgeAnchorData } from './EdgeAnchorData'
+import { DisplayInstance } from './DisplayInstance'
 
 export type Edge = {
   edgeId: string
@@ -13,16 +13,12 @@ export type Edge = {
 }
 
 export type EdgeDisplayInstance = {
-  id: string
   edgeData: Edge
-  isVisible: boolean
-  isSelected:boolean
   sourceAnchor: string
   destinationAnchor: string
   route: Array<Position> 
   style: EdgeStyle
-  anchors:Array<EdgeAnchorData>
-}
+} & DisplayInstance
 
 export  type EdgeStyle = {
   weight: string

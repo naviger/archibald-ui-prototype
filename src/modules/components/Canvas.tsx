@@ -1,4 +1,4 @@
-import React, {MouseEventHandler, useState} from "react"
+import React, {useState} from "react"
 import Helpers from "../utilities/Helpers"
 import { IModel } from "../structure/Model"
 import { BaseNode } from "../renderer/BaseNode"
@@ -58,23 +58,26 @@ import { NodeDisplayInstance } from "../structure/Node"
 import { Edge, EdgeDisplayInstance } from "../structure/Edge"
 import { DragData } from "../structure/DragData"
 import { EdgeParameters } from "../structure/EdgeParameters"
-import { NodeStatus } from "../enums/enumNodeStatus"
 import { Position } from "../structure/Position"
-import { NodeAnchorData } from "../structure/NodeAnchorData"
-import { AnchorStatus } from "../enums/enumAnchorStatus"
 import { CanvasMode } from "../enums/enumCanvasMode"
 import { EdgeRelationshipTypes, EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { DefaultValues } from "../structure/DefaultValues"
-import { EdgeConstraints } from "../enums/enumEdgeConstraints"
 import { EdgePropertyBox, EdgePropertyBoxProps } from "./EdgePropertyBox"
 import { EdgeDataRenderer } from "./EdgeDataForm"
-
 import './Canvas.css'
 import { TechnologyEquipmentNode } from "../renderer/TechnologyEquipmentNode"
 import { TechnologyFacilityNode } from "../renderer/TechnologyFacilityNode"
 import { TechnologyDistributionNetworkNode } from "../renderer/TechnologyDistributionNetworkNode"
 import { TechnologyMaterialNode } from "../renderer/TechnologyMaterialNode"
+import { Junction } from "../renderer/Junction"
+import { JunctionDisplayInstance } from "../structure/Junction"
+import { JunctionParameters } from "../structure/JunctionParameters"
+import { JunctionHandler } from "../handler/JunctionHandler"
+import { NodeAnchorHandler, NodeHandler } from "../handler/NodeHandler"
+import { CanvasController } from "../handler/CanvasController"
+import { EdgeAnchorHandler, EdgeHandleHandler, EdgeHandler } from "../handler/EdgeHandler"
+import { EdgePropertyBoxHandler } from "../handler/EdgePropertyBoxHandler"
 
 export type CanvasProps = {
   modelData?: IModel,
@@ -92,76 +95,39 @@ const nodeH = 100
 
 export const Canvas = (props:CanvasProps) => {
   let md:Array<NodeDisplayInstance> = []
-  let defaults:DefaultValues = {
-    edgeStyle: {
-      weight: "1",
-      layout:EdgeLayout.Straight,
-      color: "red",
-      style: "1 0"
-    },
-    edgeType: EdgeRelationships.Association
-  }
-  if(props.modelData) { md = props.modelData.nodes}
-  if(props.defaults) {defaults = props.defaults }
-  const [nodes, setNodes] = useState(md)
-  const [mode, setMode] = useState<CanvasMode>(CanvasMode.Ready)
-  const [propertyBox, setPropertyBox] = useState<JSX.Element[]>([])
- 
-  let pos:Position = {x:0, y:0}
   let ed:Array<EdgeDisplayInstance> = []
+  let jd:Array<JunctionDisplayInstance> = []
+
+  let defaults:DefaultValues = props.defaults
+ 
+  if(props.defaults) {defaults = props.defaults }
+  let ds:DragData = { type:"none", currentId:"", offset: {x: 0, y:0}, position:{x:0, y:0} }
+
+  const [dragData, setDragData] = useState(ds)
+  const [mode, setMode] = useState<CanvasMode>(CanvasMode.Ready)
+  const [selected, setSelected] = useState<string>("")
+
+  if(props.modelData) { md = props.modelData.nodes}
+  const [nodes, setNodes] = useState(md)
 
   if(props.modelData) { ed = props.modelData.edges}
   const [edges, setEdges] = useState(ed)
 
-  let ds:DragData = { type:"none", currentId:"", offset: {x: 0, y:0}, position:{x:0, y:0} }
-  let edd:EdgeDisplayInstance = { id:"temp", edgeData: { edgeId:'temp', name:'temp', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
-  const [dragData, setDragData] = useState(ds)
-  const [newEdgeData, setNewEdgeData] = useState<EdgeDisplayInstance>(edd)
+  if(props.modelData) { jd = props.modelData.junctions}
+  const [junctions, setJunctions] = useState(jd)
+
+  let edd:EdgeDisplayInstance = { id:"temp", edgeData: { edgeId:'temp', name:'temp', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
+  const [newEdge, setNewEdge] = useState<EdgeDisplayInstance>(edd)
+
+  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, setSelected)
   
-  let newEdge:JSX.Element = <span></span>
-
-  let select = (type:string, id:string, offset:Position, position:Position) => {
-    let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-      if(n.id === id && type === "node") {
-        n.isSelected = true
-        //helpers.setPointerEvents("node", id)
-      } else {
-        n.isSelected = false;
-      }
-      return n
-    })
-    setNodes(na)
-
-    let ea:Array<EdgeDisplayInstance> = edges.map((e, i)=>{
-      let iid:string = id.split(":")[0]
-      if((e.id === id && type === "edge") || (e.id === iid && type==="edgeAnchor") || (e.id === iid && type==="edgeHandle")) {
-        e.isSelected = true
-      } else {
-        e.isSelected = false
-      }
-      return e
-    })
-    setDragData({type:type, currentId: id, offset:offset, position:position} )
-  }
-
-  let clearSelect = () => {
-    helpers.clearPointerEvents()
-    setPropertyBox([])
-    //clearSelect()
-    let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-      n.isSelected=false
-      return n
-    })
-    setNodes(na)
-
-    let ea:Array<EdgeDisplayInstance> = edges.map((e, i)=>{
-      e.isSelected=false
-      return e
-    })
-  
-    setEdges(ea)
-    setDragData({type: 'none', currentId: "", offset:{x:0, y:0}, position:{x: 0, y: 0}})
-  }
+  let nodeHandler:NodeHandler = new NodeHandler(canvasController)
+  let nodeAnchorHandler:NodeAnchorHandler = new NodeAnchorHandler(canvasController)
+  let edgeHandler:EdgeHandler = new EdgeHandler(canvasController)
+  let edgeAnchorHandler:EdgeAnchorHandler = new EdgeAnchorHandler(canvasController)
+  let edgeHandleHandler:EdgeHandleHandler = new EdgeHandleHandler(canvasController)
+  let edgePropertyBoxHandler = new EdgePropertyBoxHandler(canvasController)
+  let junctionHandler = new JunctionHandler(canvasController)
 
   let backgroundMove = (e:React.MouseEvent<SVGElement>) => {
     let pos:Position = {x:0, y:0}
@@ -169,152 +135,17 @@ export const Canvas = (props:CanvasProps) => {
     pos.y = e.clientY
     const bbox = e.currentTarget.getBoundingClientRect()
     if(e.shiftKey && mode === CanvasMode.AddEdge) {
-      let ed:EdgeDisplayInstance = newEdgeData
-      ed.route[1] = {x:e.clientX - bbox.left, y:e.clientY-bbox.top}
-      
-      let el = document.getElementById('temp')
-      if(el) {
-        let sn:NodeDisplayInstance = nodes.find((n) => { return n.id === newEdgeData.edgeData.sourceObject}) as NodeDisplayInstance
-        let sa:NodeAnchorData = sn.anchors.find((a) => { return a.id === newEdgeData.sourceAnchor}) as NodeAnchorData
-        let p:string = (sn.position.x + sa.position.x) + "," + (sn.position.y + sa.position.y) + " " + (ed.route[1].x) +"," + (ed.route[1].y)
-        el.setAttribute("points", p)
-      }
-      setNewEdgeData(ed);
+      edgeHandler.addEdge(pos, bbox)
+    } else if(mode===CanvasMode.MoveJunction) {
+      pos.x = e.pageX 
+      pos.y = e.pageY 
+      junctionHandler.move(pos)
     } else if(mode===CanvasMode.MoveEdgeAnchor) {
-      let ea:Array<EdgeDisplayInstance> = edges.map((ed:EdgeDisplayInstance) => { 
-        if(ed.id === dragData.currentId.split(":")[0] ) { 
-          let pos:Position = {x:-1, y:-1}
-          let i:number = 1
-          pos.x = e.pageX - dragData.offset.x
-          pos.y = e.pageY - (dragData.offset.y + 30)
-          let p:Array<Position> = structuredClone(ed.route)
-            
-          if(dragData.currentId.endsWith(":M0")) {
-            let ep:Element|null = document.getElementById(dragData.currentId)  
-            let hp:Element|null = document.getElementById(dragData.currentId.split(":")[0] + ":HC2:C")  
-            let offset:Position = { x: (Number.parseInt(ep?.getAttribute("x") as string) - Number.parseInt(hp?.getAttribute("cx") as string)),
-                                     y: (Number.parseInt(ep?.getAttribute("y") as string) - Number.parseInt(hp?.getAttribute("cy") as string))}
-            p[2] = {x:  e.clientX - bbox.left - offset.x , y: e.clientY - bbox.top - offset.y}
-            p[3] = { x:  e.clientX - bbox.left, y:  e.clientY - bbox.top}
-
-            ed.route = p
-
-          } else {
-
-            //const isMiddle:boolean = dragData.currentId.split(":")[1].endsWith(".5")
-            const target:number = Number.parseInt(dragData.currentId.split(":")[1].split(".")[0])
-            const a:HTMLElement = document.getElementById(dragData.currentId) as HTMLElement
-            const constraint:Number = Number.parseInt(a.getAttribute("data-constraint") as string)
-            
-            ed.route.forEach((el) => {  // <<<<<<<<<<<<<<<< iterate through route of the edge
-              let pt:Position = structuredClone(ed.route[i])
-              //let mod:number = 1
-              
-              if(constraint === EdgeConstraints.Vertical || constraint === EdgeConstraints.None) {
-                if(i === target - 1 && ed.route[i].x === ed.route[target].x) {
-                  pt.x =  e.clientX - bbox.left
-                }
-                if(i === target) {
-                  pt.x =  e.clientX - bbox.left
-                }
-                if(i === target + 1  && ed.route[i].x === ed.route[target].x ) {
-                  pt.x = e.clientX - bbox.left
-                }
-              }
-
-              if(constraint === EdgeConstraints.Horizontal || constraint === EdgeConstraints.None) {
-                if(i === target - 1 && ed.route[i].y === ed.route[target].y) {
-                  pt.y =  e.clientY - bbox.top
-                }
-                if(i === target) {
-                  pt.y =  e.clientY - bbox.top
-                }
-                if(i === target + 1  && ed.route[i].y === ed.route[target].y ) {
-                  pt.y =  e.clientY - bbox.top
-                }
-              }
-            
-              if(pt) {
-                p[i] = (pt)
-              }
-              i++ 
-            })
-          }
-  
-          ed.route = p
-               
-        }
-        return ed; 
-      })
-      
-      setEdges(ea)
-
+      pos.x = e.pageX - dragData.offset.x
+      pos.y = e.pageY - dragData.offset.y
+      edgeAnchorHandler.moveAnchor(pos, bbox)
     } else if(mode===CanvasMode.MoveEdgeHandle) {
-      if(e && (e.target instanceof Element) && (e.currentTarget)){
-        const eid = dragData.currentId.split(":")[0]
-        const hid = dragData.currentId.split(":")[1]
-
-        const p:Position = {x: e.clientX - bbox.left, y: e.clientY - bbox.top}
-      
-        if(eid && hid)  {
-          let c = document.getElementById(eid + ":" + hid + ":C")
-          let l = document.getElementById(eid + ":" + hid + ":L")
-          let ed = document.getElementById(eid)
-          let edbg = document.getElementById(eid + ":bg")
-          c?.setAttribute('cx',  ("" + (e.clientX - bbox.left))) 
-          c?.setAttribute('cy',  ("" + (e.clientY - bbox.top)))    
-          l?.setAttribute('x1',  ("" + (e.clientX - bbox.left)))
-          l?.setAttribute('y1',  ("" + (e.clientY - bbox.top))) 
-
-          let ds = ed?.getAttribute('d')
-          let d:string[]|undefined = ds?.split(" ") 
-          
-          if(d!=undefined ) {
-            if(hid === 'HC2') {
-              let pivot = {x: Number.parseInt(d[5].split(",")[0]), y: Number.parseInt(d[5].split(",")[1])}
-              let i:Position = helpers.getInverse(p, pivot)
-              let c2 = document.getElementById(eid + ":HC2I:C")
-              let l2 = document.getElementById(eid + ":HC2I:L")
-              c2?.setAttribute('cx',  ("" + i.x))
-              c2?.setAttribute('cy',  ("" + i.y))   
-              l2?.setAttribute('x1',  ("" + i.x))
-              l2?.setAttribute('y1',  ("" + i.y))   
-            } else if (hid === 'HC2I') {
-              let pivot = {x: Number.parseInt(d[5].split(",")[0]), y: Number.parseInt(d[5].split(",")[1])}
-              let i:Position = helpers.getInverse(p, pivot)
-              let c2 = document.getElementById(eid + ":HC2:C")
-              let l2 = document.getElementById(eid + ":HC2:L")
-              c2?.setAttribute('cx',  ("" + i.x))
-              c2?.setAttribute('cy',  ("" + i.y))   
-              l2?.setAttribute('x1',  ("" + i.x))
-              l2?.setAttribute('y1',  ("" + i.y))   
-            }          
-        // M EP1       C HP1       HP2       EP1       S HP3       EP2 
-        // M 1340,1100 C 1340,1200 1240,1200 1170,1200 S 1100,1250 1140,1300 
-        // 0 1         2 3         4         5         6 7         8
-        //   0           1         2         3           4         5     << d ref
-          
-          switch(hid) {
-            case 'HC1':
-              ds = "M " + d[1] + " C " + p.x + "," + p.y + " " + d[4] + " " + d[5] + " S " + d[7] + " " + d[8] 
-              break
-            case 'HC2':
-              ds = "M " + d[1] + " C " + d[3] + " " + p.x + "," + p.y + " " + d[5] + " S " + d[7] + " " + d[8]
-              break
-            case 'HC2I':
-              let pivot = {x: Number.parseInt(d[5].split(",")[0]), y: Number.parseInt(d[5].split(",")[1])}
-              let i:Position = helpers.getInverse(p, pivot)
-              ds = "M " + d[1] + " C " + d[3] + " " + i.x + "," + i.y + " " + d[5] + " S " + d[7] + " " + d[8]
-              break
-            case 'HC3':
-              ds = "M "+ d[1] + " C " + d[3] + " " + d[4] + " " + d[5] + " S " + p.x + "," + p.y + " " + d[8]
-              break
-            }
-          }
-          ed?.setAttribute("d", ds as string)
-          edbg?.setAttribute("d", ds as string)
-        }
-      }
+      edgeHandleHandler.moveHandlePosition(pos, bbox)
     } else if(mode===CanvasMode.MovePropertyBox) {
       if(e && (e.target instanceof Element) && (e.currentTarget) && e.button === 0){
         let box:HTMLElement = document.getElementById("edge-property-box") as HTMLElement
@@ -328,313 +159,35 @@ export const Canvas = (props:CanvasProps) => {
   let backgroundMouseUp = (e:React.MouseEvent<SVGElement>) => {
     if(mode===CanvasMode.MoveEdgeAnchor || mode === CanvasMode.MoveEdgeHandle) {
       setMode(CanvasMode.Ready)
-      helpers.clearPointerEvents()
-      //setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
-      clearSelect()
+      canvasController.clearPointerEvents()
+      setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
+      canvasController.clearSelect()
+    } else if(mode === CanvasMode.AddEdge) {
+      setMode(CanvasMode.Ready)
+      setNewEdge(edd)
+    } else {
+      setSelected("")
     }
   }
 
   let np:NodeParameters = {
     canvasMode:mode,
-    setHoverNode: (e:React.PointerEvent<SVGElement>) => { 
-      if(e && (e.target instanceof Element)) {
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame") {
-          e.target.setAttribute("stroke-width", "2")
-          e.target.setAttribute("stroke", "gray")
-        }
-      }
-    },
-    clearHoverNode: (e:React.PointerEvent<SVGElement>) => {
-      if(e && (e.target instanceof Element)){
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame") {
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "grey")
-        }
-      }
-    },
-    setSelectedNode: (e:React.PointerEvent<SVGElement>) => { 
-      if(e && (e.target instanceof Element) && mode === CanvasMode.Ready){
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame" && props.modelData) {
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "green")
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.nodeData.nodeId==id) {
-              n.isSelected=true
-            } else {
-              n.isSelected=false;
-            }
-            return n;
-          })
-          setNodes(na)
-        }
-      }
-    },
-    startMoveNode: (e:React.PointerEvent<SVGElement>) => {
-      if(e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey && mode === CanvasMode.Ready){
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        const bbox = e.currentTarget.getBoundingClientRect();
-        select("node", e.currentTarget.id, {x: e.clientX - bbox.left, y:e.clientY - bbox.top}, {x: e.clientX, y: e.clientY})
-        if(el=="frame") {
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.id === e.currentTarget.id) {
-              n.isSelected=false
-              n.status = NodeStatus.Moving
-              n.oldPosition = {x: n.position.x, y: n.position.y}
-            } 
-            return n
-          })
-          setNodes(na)
-          setMode(CanvasMode.MoveNode)
-        } else {
-          clearSelect()
-          setMode(CanvasMode.Ready);
-        } 
-      }
-    },
-    inMove: (e:React.PointerEvent<SVGElement>) => {
-      if(dragData.type==='node' && dragData.currentId.length > 0 && e && (e.target instanceof Element) && (e.currentTarget) ){
-        const el = e.target.getAttribute("data-element")
-        const bbox = e.currentTarget.getBoundingClientRect()
-        if(el=="frame" && e.currentTarget.id == dragData.currentId && !e.shiftKey && mode === CanvasMode.MoveNode) {
-          let ea:Array<EdgeDisplayInstance> = edges.map((ed) => {
-            if(ed.edgeData.sourceObject === dragData.currentId && ed.style.layout === EdgeLayout.Bezier ) {
-              let p:Array<Position> = structuredClone(ed.route)
-              const pos:Position = {x: e.pageX - dragData.offset.x, y: e.pageY - (dragData.offset.y +30)}
-              let n:NodeDisplayInstance = nodes.find((nd) => { return nd.id === ed.edgeData.sourceObject}) as NodeDisplayInstance
-              let handleOffset:Position = {x: p[1].x - p[0].x, y: p[1].y - p[0].y} //difference between anchor and handle
-              let anchorOffset:Position = {x:p[0].x - (n.position.x), y: p[0].y - (n.position.y)}
-              p[0] = {x: pos.x + anchorOffset.x, y:pos.y + anchorOffset.y }
-              p[1] = {x: pos.x + anchorOffset.x + handleOffset.x , y: pos.y + anchorOffset.y + handleOffset.y}
-              ed.route = p
-            }
-
-            if(ed.edgeData.destinationObject === dragData.currentId && ed.style.layout === EdgeLayout.Bezier ) {
-              let p:Array<Position> = structuredClone(ed.route)
-              const pos:Position = {x: e.pageX - dragData.offset.x, y: e.pageY - (dragData.offset.y +30)}
-              let n:NodeDisplayInstance = nodes.find((nd) => { return nd.id === ed.edgeData.destinationObject}) as NodeDisplayInstance
-              let handleOffset:Position = {x: p[4].x - p[5].x, y: p[4].y - p[5].y} //difference between anchor and handle
-              let anchorOffset:Position = {x:p[5].x - (n.position.x), y: p[5].y - (n.position.y)}
-              p[5] = {x: pos.x + anchorOffset.x, y:pos.y + anchorOffset.y }
-              p[4] = {x: pos.x + anchorOffset.x + handleOffset.x , y: pos.y + anchorOffset.y + handleOffset.y}
-              ed.route = p
-            }
-            return ed
-          })
-
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.id === e.currentTarget.id) {
-              n.position.x = e.pageX - dragData.offset.x
-              n.position.y = e.pageY - (dragData.offset.y +30)
-
-              for(let i=0; i < n.anchors.length; i++) {
-                if(n.anchors[i].edges.length > 0) {
-                  n.anchors[i].edges.forEach((et: string)=> {
-                    let e:EdgeDisplayInstance | undefined = edges.find((er) => { return er.id === et})
-                    if(e) {
-                      e.route = helpers.getAdjustedRoute(nodes, e, n.id)
-                    }
-                  })
-                }
-              }
-            } 
-            return n
-          })
-          setNodes(na)
-          setEdges(ea)
-        } else if(e.shiftKey && mode === CanvasMode.AddEdge) {
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.id === e.currentTarget.id) {
-              n.position.x = e.pageX - dragData.offset.x
-              n.position.y = e.pageY - (dragData.offset.y +30)
-              n.isSelected = true;
-            } 
-            return n
-          })
-          setNodes(na)
-        }
-      }
-    },
-    endMoveNode: (e:React.PointerEvent<SVGElement>) => {
-      if(e && (e.target instanceof Element)) { 
-        //clearSelect()
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame" && props.modelData) {
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "green")
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.nodeData.nodeId==id) {
-              n.isSelected=true
-              n.status = NodeStatus.Ready;
-            } else {
-              n.isSelected=false;
-            }
-            return n;
-          })
-          setNodes(na)
-          setMode(CanvasMode.Ready)
-        }
-        
-      }
-      
-      setDragData({type:"none", currentId: "", offset:{x:0, y:0}, position:{x: 0, y: 0}})
-    },
-    addAnchor: (e:React.PointerEvent<SVGElement>, pos:Position) => {
-      if(e && (e.target instanceof Element) && (e.currentTarget)){
-        const id = e.target.getAttribute("data-node-id")
-        if(id) {
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.id === e.currentTarget.id) {
-              let a:NodeAnchorData = {
-                id: 'd' + (n.anchors.length - 7),
-                position: {x:pos.x - n.position.x, y: pos.y - n.position.y},
-                status: AnchorStatus.Available && AnchorStatus.Dynamic,
-                edges:[]
-              }
-              n.anchors.push(a)
-              n.status = NodeStatus.Ready;
-            }
-            return n;
-          })
-          setNodes(na)
-        }
-      }
-    },
+    setHover: nodeHandler.setHover,
+    clearHover: nodeHandler.clearHover,
+    setSelected: nodeHandler.setSelected,
+    startMove: nodeHandler.startMove,
+    inMove: nodeHandler.inMove,
+    endMove: nodeHandler.endMove,
+    addAnchor: nodeHandler.addAnchor,
     anchorParams: {
-      setHoverAnchor: (e:MouseEvent) => {
-        if(e && (e.target instanceof Element)) {
-          e.target.setAttribute("stroke-width", "3")
-          e.target.setAttribute("stroke", "orange")
-          if(mode===CanvasMode.AddEdge && e.shiftKey) {
-            e.target.setAttribute("fill", "green")
-          }
-        }
-      },
-      clearHoverAnchor: (e:Event) => {
-        if(e && (e.target instanceof Element)){
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "black")
-        }
-      },
-      setSelectedAnchor: (e:MouseEvent)=> {
-        if(e && (e.target instanceof Element)) {
-          
-          const nid= e.target.id.split(":")[0]
-          const aid = e.target.id.split(":")[1]
-          if(e.shiftKey) {
-            let nn:NodeDisplayInstance = nodes.find((nd)=> { return nd.id === nid}) as NodeDisplayInstance
-            let aa:NodeAnchorData = nn.anchors.find((an) => {return an.id === aid} ) as NodeAnchorData
-            e.target.setAttribute("stroke-width", "3")
-            e.target.setAttribute("stroke", "green")
-            let ned = newEdgeData
-            ned.edgeData.sourceObject = nid
-            ned.sourceAnchor=aid
-            ned.route=[{x:nn.position.x + aa.position.x , y:nn.position.y + aa.position.y}, {x:nn.position.x + aa.position.x, y:nn.position.y + aa.position.y}]
-            setMode(CanvasMode.AddEdge)
-            setNewEdgeData(ned)
-          } else {
-          }
-        }
-      },
-      setNewEdgeEndPoint: (e:MouseEvent)=> {
-        let ed:EdgeDisplayInstance = structuredClone(newEdgeData);
-        let hed:EdgeDisplayInstance = structuredClone(newEdgeData);
-        if(e.target && (e.target instanceof Element) && mode === CanvasMode.AddEdge) {
-          let nid = e.target.id.split(":")[0]
-          let aid = e.target.id.split(":")[1]
-          let dn = nodes.find((n) => { return n.id === nid}) as NodeDisplayInstance
-          let an = dn?.anchors.find((a) => { return a.id === aid}) as NodeAnchorData
-          ed.edgeData.destinationObject = nid
-          ed.destinationAnchor = aid
-          ed.id = crypto.randomUUID()
-          ed.isSelected=true
-          ed.isVisible=true
-          ed.style=defaults.edgeStyle
-          ed.edgeData.edgeId = crypto.randomUUID();
-          
-          let ea:Array<EdgeDisplayInstance> = edges.map((e, i)=>{
-            return e
-          })
-          ea.push(ed)
-
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.id === ed.edgeData.sourceObject) {
-              for(let i:number = 0; i < n.anchors.length; i++) {
-                if(n.anchors[i].id === ed.sourceAnchor) {
-                  if(!n.anchors[i].edges.includes("ed.id")) {
-                    n.anchors[i].edges.push(ed.id)
-                  }
-                }
-              }
-            }
-            if(n.id === ed.edgeData.destinationObject) {
-              for(let i:number = 0; i < n.anchors.length; i++) {
-                if(n.anchors[i].id === ed.destinationAnchor) {
-                  if(!n.anchors[i].edges.includes("ed.id")) {
-                    n.anchors[i].edges.push(ed.id)
-                  }
-                }
-              }
-            }
-            return n;
-          })
-          setNodes(na)
-          hed.route = [{x:-1, y:-1}, {x:-1, y:-1}]
-          setNewEdgeData(hed)
-          setEdges(ea)
-          setMode(CanvasMode.Ready)
-        }
-      },
-      dragNewEdge:  (e:MouseEvent)=> {
-      }
+      setHover: nodeAnchorHandler.setHover,
+      clearHover: nodeAnchorHandler.clearHover,
+      setSelectedAnchor: nodeAnchorHandler.startNewEdge,
+      setNewEdgeEndPoint: nodeAnchorHandler.endNewEdge,
+      dragNewEdge:  nodeAnchorHandler.dragNewEdge
     },
-    inAddAnchor: (e:React.PointerEvent<SVGElement>) => {
-      if(e && (e.target instanceof Element)){
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame" && props.modelData) {
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "green")
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.nodeData.nodeId==id) {
-              n.isSelected=true
-              n.status = NodeStatus.AddAnchor;
-            } else {
-              n.isSelected=false;
-            }
-            return n;
-          })
-          setNodes(na)
-        }
-      }
-    },
-    setReady: (e:React.PointerEvent<SVGElement>) => {
-      if(e && (e.target instanceof Element)){
-        const id = e.target.getAttribute("data-node-id")
-        const el = e.target.getAttribute("data-element")
-        if(el=="frame" && props.modelData) {
-          e.target.setAttribute("stroke-width", "1")
-          e.target.setAttribute("stroke", "green")
-          let na:Array<NodeDisplayInstance> = nodes.map((n, i)=>{
-            if(n.nodeData.nodeId==id) {
-       //       n.isSelected=true
-              n.status = NodeStatus.Ready;
-            } else {
-              n.isSelected=false;
-            }
-            return n;
-          })
-          setNodes(na)
-        }
-      }
-    },
+    inAddAnchor: nodeHandler.inAddAnchor,
+    setReady: nodeHandler.setReady,
     index:0
   }
   
@@ -871,171 +424,86 @@ export const Canvas = (props:CanvasProps) => {
 
   let ep:EdgeParameters = {
     index:200,
-    setHoverEdge: (e: React.PointerEvent<SVGElement>) => {
-      if (e && (e.target instanceof Element)) {
-        const id = e.target.getAttribute("id")?.split(":")[0];
-        const tgt = document.getElementById(id as string) as Element;
-        const el = e.target.getAttribute("data-element");
-        if (el == "connector") {
-          tgt.setAttribute("stroke-width", "3");
-          tgt.setAttribute("stroke", "teal");
-        }
-      }
-    },
-    setSelectedEdge: (e: React.PointerEvent<SVGElement>) => {
-      if (e && (e.target instanceof Element)) {
-        
-        const id = e.target.getAttribute("id")?.split(":")[0]
-        let ea: Array<EdgeDisplayInstance> = edges.map((e, i) => {
-          if (e.id === id) {
-            e.isSelected = true
-          } else {
-            e.isSelected = false
-          }
-          return e
-        });
-
-
-        let  params:EdgePropertyBoxProps = {
-          id:id as string,
-          data:(edges.find((ed) => { return ed.id === id}))?.edgeData as Edge,
-          dataRenderer: EdgeDataRenderer,
-          dragStart: (e:React.PointerEvent<HTMLDivElement>) => {
-            if(e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey && mode === CanvasMode.Ready){
-              let nodeEls = document.getElementsByClassName("toggle-pointer")
-              for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-pointer-events"); }
-              const bbox = e.currentTarget.getBoundingClientRect();
-              setDragData({type: 'property-box', currentId: e.currentTarget.id, offset:{x: e.clientX - bbox.left, y:e.clientY - bbox.top}, position:{x: e.clientX, y: e.clientY}})
-              setMode(CanvasMode.MovePropertyBox)
-            }
-          },
-          dragDone: (e:React.PointerEvent<HTMLDivElement>) => {
-            if(e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey && mode === CanvasMode.Ready){
-              // let el:Element|null = document.getElementById("edge-property-box")
-              // if(el) el.classList.remove("no-pointer-events")
-              // el = document.getElementById("edge-inner-property-panel")
-              // if(el) el.classList.remove("no-pointer-events")
-              let nodeEls = document.getElementsByClassName("toggle-pointer")
-              for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.remove("no-pointer-events"); }
-              setDragData({type: 'none', currentId: "", offset:{x: -1, y:-1}, position:{x: -1, y: -1}})
-              setMode(CanvasMode.Ready)
-            }
-          },
-          setEdgeLayout: (id:string, layout:EdgeLayout) => {
-            helpers.changeEdgeLayout(edges, nodes, id, layout, setEdges)
-          },
-          setEdgeType: (tgt:string, id:EdgeRelationships) => {
-            let ea:EdgeDisplayInstance[] = edges.map((ed) => {
-              if(ed.edgeData.edgeId === tgt) {
-                ed.edgeData.type = id
-              }
-              return ed
-            })
-            setEdges(ea)
-          },
-          remove: () => {
-            let tgt:number = edges.findIndex((e)=>{return e.isSelected===true})
-            edges.splice(tgt, 1)
-            setEdges(edges)
-          },
-          position:{x:e.clientX + 30, y:e.clientY + 30 }
-        }
-
-        let propbox = <EdgePropertyBox {...params} />
-        propertyBox.push(propbox)
-
-        let nodeEls = document.getElementsByClassName("node");
-        for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-pointer-events"); }
-        
-        setEdges(ea);
-      }
-    },
-    setLeaveEdge: (e: React.PointerEvent<SVGElement>) => {
-      if (e && (e.target instanceof Element) && mode != CanvasMode.AddEdge) {
-        const id = e.target.getAttribute("id")?.split(":")[0];
-        const tgt = document.getElementById(id as string) as Element;
-        const el = e.target.getAttribute("data-element");
-        if (el == "connector") {
-          let ed: EdgeDisplayInstance = edges.find((t) => { return t.id === id; }) as EdgeDisplayInstance;
-          if (ed.style) {
-            tgt.setAttribute("stroke-width", ed.style.weight);
-            tgt.setAttribute("stroke", ed.style.color);
-          } else {
-          }
-        }
-      }
-    },
+    setHover: edgeHandler.setHover,
+    setSelectedEdge: edgeHandler.setSelectedEdge,
+    clearHover: edgeHandler.clearHover,
+    dragDone: edgeHandler.dragDone,
     anchorParams: {
-      selectAnchor: (e: React.PointerEvent<SVGElement>) => {
-        if (e && (e.target instanceof Element) && (e.currentTarget)) {
-          const id = e.target.getAttribute("id");
-          const bbox = e.currentTarget.getBoundingClientRect();
-          setMode(CanvasMode.MoveEdgeAnchor);
-          select('edgeAnchor', id as string, { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, { x: e.clientX, y: e.clientY })
-        }
-      },
-      moveAnchor: (e: React.MouseEvent<SVGElement>) => {
-      },
-      dropAnchor: (e: React.PointerEvent<SVGElement>) => {
-        setMode(CanvasMode.Ready);
-        setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } });
-        helpers.clearPointerEvents()
-      }
-    },
-    dragDone: (e: React.PointerEvent<SVGElement>) => {
-      if(mode === CanvasMode.MoveEdgeAnchor) {
-        setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
-      }
+      selectAnchor: edgeAnchorHandler.selectAnchor,
+      moveAnchor: edgeAnchorHandler.moveAnchor,
+      dropAnchor: edgeAnchorHandler.dropAnchor
     },
     handleParams: {
-      setSelectedHandle: (e: React.PointerEvent<SVGElement>) => {
-        if (e && (e.target instanceof Element) && (e.currentTarget) && !e.shiftKey ) {
-          const id = e.target.getAttribute("id")
-          const bbox = e.currentTarget.getBoundingClientRect()
-          setMode(CanvasMode.MoveEdgeHandle)
-          select('edgeHandle', id as string,  { x: e.clientX - bbox.left, y: e.clientY - bbox.top }, { x: e.clientX, y: e.clientY })
-        }
-      },
-      moveHandle: (e: React.PointerEvent<SVGElement>) => {
-        if (e && (e.target instanceof Element) && (e.currentTarget) && mode === CanvasMode.MoveEdgeHandle) {
-          const eid = e.target.getAttribute("id")?.split(":")[0];
-          const hid = e.target.getAttribute("id")?.split(":")[1];
-
-          if (eid && hid) {
-            let ed: EdgeDisplayInstance = edges.find((t) => { return t.id === eid; }) as EdgeDisplayInstance;
-          }
-        }
-      }, endMoveHandle: (e: React.PointerEvent<SVGElement>) => {
-        setMode(CanvasMode.Ready);
-        setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } });
-      }
+      setSelectedHandle: edgeHandleHandler.setSelectedHandle,
+      moveHandle: edgeHandleHandler.moveHandle, 
+      endMoveHandle: edgeHandleHandler.endMoveHandle
     },
-    
   }
 
   edges.forEach((e) => {
     if(e.isVisible) {
       const src:NodeDisplayInstance|undefined = nodes.find((n)=>{ return n.id == e.edgeData.sourceObject})
       const dst:NodeDisplayInstance|undefined = nodes.find((n)=>{ return n.id == e.edgeData.destinationObject})
-      e.route = helpers.getAdjustedRoute(nodes, e, dragData.currentId)
+      e.route = helpers.getAdjustedRoute(nodes, junctions, e, dragData.currentId)
       let ei:JSX.Element = new BaseEdge(e, ep).Render()
       els.push(ei)
     }
   })
 
+  const jp:JunctionParameters = {
+    setHover: junctionHandler.setHover,
+    clearHover: junctionHandler.clearHover,
+    setSelected: junctionHandler.setSelected,
+    move: junctionHandler.move,
+    drop: junctionHandler.drop,
+    dropOnAnchor: junctionHandler.endNewEdge,
+    clickOnAnchor: junctionHandler.startNewEdge
+  }
+  
+  junctions.forEach((e) => {
+    let ei:JSX.Element = new Junction(e, jp).Render()
+    els.push(ei)
+  })
+
+  let propertyBox = <span></span>
+
+  if(selected.length > 0 ) {
+    let t = selected.split(":")[0]
+    let id = selected.split(":")[1]
+
+    if(t === "edge") {
+      let curEdge = edges.find((ed) => { return ed.id === id}) as EdgeDisplayInstance
+      if(curEdge) {
+        let  params:EdgePropertyBoxProps = {
+          id:id as string,
+          data:curEdge?.edgeData as Edge,
+          dataRenderer: EdgeDataRenderer,
+          dragStart: edgePropertyBoxHandler.dragStart,
+          dragDone: edgePropertyBoxHandler.dragDone,
+          setEdgeLayout: edgePropertyBoxHandler.setEdgeLayout,
+          setEdgeType: edgePropertyBoxHandler.setEdgeType,
+          remove: edgePropertyBoxHandler.remove,
+          position:{x:curEdge?.route[0].x + 30, y:curEdge.route[0].y + 30 }
+        }
+    
+        propertyBox = <EdgePropertyBox {...params} />
+      }
+    }
+  }
+
   cvsW = cvsW + 100
   cvsH = cvsH + 100
 
-  let ne:EdgeDisplayInstance = newEdgeData
-  newEdge = new BaseEdge(ne, ep).Render()
+  let ne:EdgeDisplayInstance = newEdge
+  const newEdgeEl = new BaseEdge(ne, ep).Render()
 
   return <div className="canvas" style={{"height": "" + cvsH + "px" , "width": +"" + cvsW + "px" }}>
     <svg id="canvas" version="2.0" height={cvsH} width={cvsW} >
-      <rect x="0" y="0" width={cvsW} height={cvsH} fill="#efffff" onClick={clearSelect} onMouseMove={backgroundMove} onMouseUp={backgroundMouseUp}/>
+      <rect x="0" y="0" width={cvsW} height={cvsH} fill="#efffff" onClick={canvasController.clearSelect} onMouseMove={backgroundMove} onMouseUp={backgroundMouseUp}/>
       { els }
-      { newEdge }
+      { newEdgeEl }
     </svg>
-    { propertyBox[0] }
+    { propertyBox }
     <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) }</span>
   </div>
 }

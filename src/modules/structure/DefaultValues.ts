@@ -1,4 +1,3 @@
-import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { EdgeStyle } from "./Edge"
 

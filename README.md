@@ -6,7 +6,7 @@
 ## Todo Features:
   - Add ability to move edges between node anchors
   - Add node data view - a view attached to nodes that show node-specific data
-  - Add Junction for Edges 
+  - ~~Add Junction for Edges~~ 
   - Add ability to add edge anchors to allow more then five segments
   - Add ability to delete edge anchors
   - Add rule processing for connectors
@@ -15,9 +15,10 @@
   - ~~Add physical items new to 3.2 Technology Layer~~ 
 
 ## Known Issues:
-  - Selecting Edge does not update Edge Data UI component with current edge
-  - Issues with drag and drop within SVG canvas makes it difficult to drag items - this is especially prevalent when trying to add a new edge
+  - ~~Selecting Edge does not update Edge Data UI component with current edge~~
+  - ~~Issues with drag and drop within SVG canvas makes it difficult to drag items - this is especially prevalent when trying to add a new edge~~
   - ~~The Communication Network is currently using Archimate 3.1 graphic~~
+  - Issue with routing of edges (switching from straight to orthagonal, etc.)
 
 ## Overview
 This demo shows all of the Archimate 3.2 cards and allows them to be connected using the Archimate connectors as defined in the [Archimate 3.2](https://pubs.opengroup.org/architecture/archimate32-doc/index.html) definition. Archimate is a metamodel language for modeling enterprise architecture. This UI shows a complete set of the Archimate "cards". These cards are rendered on an SVG canvas and allow the user to move them and connect them utilizing the standard Archimate connectors.

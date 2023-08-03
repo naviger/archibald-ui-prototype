@@ -1,8 +1,5 @@
-import { Position } from "./Position";
+import { Anchorable } from "./Anchorable";
 
 export type NodeAnchorData = {
-  id: string
-  position: Position
-  status: number,
-  edges:Array<string>
-}
+
+} & Anchorable

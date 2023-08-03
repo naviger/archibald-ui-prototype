@@ -1,22 +1,14 @@
-import React, { MouseEventHandler } from "react";
-// import { JsxElement } from "typescript";
-// import { Canvas, CanvasInterface } from "../Canvas";
+import { MouseEventHandler } from "react";
 import { EdgeLayout } from "../enums/enumEdgeLayout";
 import { EdgeDisplayInstance } from "../structure/Edge";
 import { Position } from "../structure/Position"
 import { EdgeDirection } from "../enums/enumEdgeDirection";
 import { EdgeParameters } from "../structure/EdgeParameters";
 import { EdgeAnchor } from "./EdgeAnchor";
-// import { EdgeAnchorData } from "../structure/EdgeAnchorData";
-// import { EdgeAnchorParameters } from "../structure/EdgeAnchorParameters";
 import { EdgeAnchorStatus } from "../enums/enumEdgeAnchorStatus";
 import { EdgeConstraints } from "../enums/enumEdgeConstraints";
-import { EdgeRelationships } from "../enums/enumEdgeRelationships";
 import Helpers from "../utilities/Helpers";
 import { EdgeHandle } from "./EdgeHandle";
-import { EdgePropertyBox } from "../components/EdgePropertyBox";
-import { Node } from "typescript";
-// import { byPropertiesOf, sort } from "../utilities/sort";
 import { getEndDecoration } from "./EndDecorations";
 import { StyleObject } from "../structure/StyleObject";
 import { getStartDecoration } from "./StartDecorations";
@@ -40,7 +32,7 @@ export class BaseEdge {
 
   setTop = () => {
     var el = document.getElementById(this.display.edgeData.edgeId)
-    if(el) {
+    if(el && el.style) {
       el.style.zIndex="999"
       if(el.parentElement){ el.parentElement.appendChild(el)};
     }
@@ -54,15 +46,15 @@ export class BaseEdge {
   }
 
   edgeEnter:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setHoverEdge(e)
+    this.params.setHover(e.currentTarget.id)
   }
 
   edgeLeave:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setLeaveEdge(e)
+    this.params.clearHover(e.currentTarget.id)
   }
 
   edgeClick:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setSelectedEdge(e)
+    this.params.setSelectedEdge(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY})
   }
 
   edgeDown:MouseEventHandler<SVGGElement> = (e) => {
@@ -89,7 +81,6 @@ export class BaseEdge {
     end = <circle cx={-3} cy={-3} r={3} fill='black' />
     let i:number = 0;
     let ptprev:Position = this.display.route[0]
-    //let eaprev:EdgeAnchor
 
     const styles:StyleObject = {
       fill:this.strokeColor,
@@ -198,7 +189,7 @@ export class BaseEdge {
               let status = EdgeAnchorStatus.Free
               if(i === this.display.route.length -1) {status = EdgeAnchorStatus.Locked}
               
-              if(ptprev.x === pt.x ) { //&& ptprev.y != pt.y
+              if(ptprev.x === pt.x ) { 
                 let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
                 i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None)
 
@@ -206,7 +197,7 @@ export class BaseEdge {
 
                 anchors.push(ea2.render())
                 anchors.push(ea1.render())
-              } else if(ptprev.x != pt.x ) {  //&& ptprev.y === pt.y
+              } else if(ptprev.x != pt.x ) {  
                 let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
                   i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None)
 
@@ -266,6 +257,7 @@ export class BaseEdge {
         })
 
         if(!this.display.isSelected) {
+
           anchors = [];
         }
 

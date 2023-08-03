@@ -1,21 +1,29 @@
 import { EdgeLayout } from "../enums/enumEdgeLayout";
 import { Extent, Position } from "../structure/Position";
 import { NodeAnchorData } from "../structure/NodeAnchorData";
-import { Edge, EdgeDisplayInstance } from "../structure/Edge";
+import { EdgeDisplayInstance } from "../structure/Edge";
 import { NodeDisplayInstance } from "../structure/Node";
 import { EdgeAnchorCollection } from "../structure/EdgeAnchorCollection";
 import { EdgeSide } from "../enums/enumEdgeSide";
-import { EdgeDirection } from "../enums/enumEdgeDirection";
 import { EdgeRelationships } from "../enums/enumEdgeRelationships";
 import { layouts } from "../data/layout"
-// import { get } from "http";
-// import { resolveAny } from "dns";
+import { JunctionDisplayInstance } from "../structure/Junction";
+import { JunctionAnchorData } from "../structure/JunctionAnchorData";
+import { DisplayInstance } from "../structure/DisplayInstance";
 
 class Helpers {
 
   gap:number = 10;
   constructor (gap?:number) {
     this.gap = gap ? gap: 10
+  }
+
+  findAnchorableObject = (nodes:NodeDisplayInstance[], junctions:JunctionDisplayInstance[], targetId:string):NodeDisplayInstance|JunctionDisplayInstance => {
+    let r:NodeDisplayInstance|JunctionDisplayInstance = nodes.find((n) => { return targetId === n.id}) as NodeDisplayInstance
+    if(r === undefined) {
+      r = junctions.find((j) => { return targetId === j.id}) as JunctionDisplayInstance
+    }
+    return r
   }
 
   GetStyle = (tgt:string, style:string):string => {
@@ -28,17 +36,16 @@ class Helpers {
     }
   }
 
-  getAdjustedRoute = (nodes:Array<NodeDisplayInstance>, ed:EdgeDisplayInstance, movedNodeId:string):Position[] => {
+  getAdjustedRoute = (nodes:Array<NodeDisplayInstance>, junctions: Array<JunctionDisplayInstance>, ed:EdgeDisplayInstance, movedNodeId:string):Position[] => {
     var p:Position[] = [];
     var sp:Position = ed.route[0]; 
     var ep:Position = ed.route[ed.route.length-1]
     var nsp:Position = structuredClone(ed.route[0]); 
     var nep:Position = structuredClone(ed.route[ed.route.length-1])
     var startAngle = this.getStraightAngle(ed.route[0], ed.route[1])
-    //let lst = ed.route.length
 
-    var sn:NodeDisplayInstance = nodes.find((n:NodeDisplayInstance)=> { return n.id == ed.edgeData.sourceObject}) as NodeDisplayInstance
-    var en:NodeDisplayInstance = nodes.find((n:NodeDisplayInstance)=> { return n.id == ed.edgeData.destinationObject}) as NodeDisplayInstance
+    var sn = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
+    var en = this.findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject)
 
     var stretchedX:boolean = false;
     var stretchedY:boolean = false;
@@ -71,9 +78,6 @@ class Helpers {
         }
       }
     }
-
-    var stretchX:number = 1
-    var stretchY:number = 1
 
     let ht:number = 0
     let wd:number = 0
@@ -122,9 +126,6 @@ class Helpers {
     } else if(ed.style.layout == EdgeLayout.Bezier) {
       p = structuredClone(ed.route)
 
-      var sn:NodeDisplayInstance = nodes.find((n:NodeDisplayInstance)=> { return n.id == ed.edgeData.sourceObject}) as NodeDisplayInstance
-      var en:NodeDisplayInstance = nodes.find((n:NodeDisplayInstance)=> { return n.id == ed.edgeData.destinationObject}) as NodeDisplayInstance
-  
       if(sn!=undefined && ed.edgeData.sourceObject === movedNodeId) {
         var sna = sn.anchors.find((a:NodeAnchorData)=>{ return a.id === ed.sourceAnchor}) 
         let np:Position = {
@@ -221,14 +222,15 @@ class Helpers {
     return c
   }
 
-  changeEdgeLayout = (edges:EdgeDisplayInstance[], nodes:NodeDisplayInstance[], id:string, targetLayout: EdgeLayout, set:Function) => {
+  changeEdgeLayout = (edges:EdgeDisplayInstance[], nodes:NodeDisplayInstance[], junctions:JunctionDisplayInstance[], id:string, targetLayout: EdgeLayout, set:Function) => {
     let ea:EdgeDisplayInstance[] = edges.map((ed) => {
       
       if(ed.id === id ) {
         switch (targetLayout) {
           case EdgeLayout.Bezier:
-            const snb:NodeDisplayInstance = nodes.find((n) => { return ed.edgeData.sourceObject === n.id}) as NodeDisplayInstance
-            const dnb:NodeDisplayInstance = nodes.find((n) => { return ed.edgeData.destinationObject === n.id}) as NodeDisplayInstance
+            const snb:NodeDisplayInstance|JunctionDisplayInstance = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
+            const dnb:NodeDisplayInstance|JunctionDisplayInstance = this. findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject) 
+ 
         // M EP1       C HP1       HP2       EP1       S HP3       EP2 
         // M 1340,1100 C 1340,1200 1240,1230 1270,1200 S 1100,1250 1140,1300 
         // 0 1         2 3         4         5         6 7         8
@@ -247,7 +249,7 @@ class Helpers {
                 break
               case EdgeLayout.NinetyDegree:
               case EdgeLayout.Rounded:
-                case EdgeLayout.Straight:
+              case EdgeLayout.Straight:
                 const ssb:EdgeSide = this.getSide(snb, ed.sourceAnchor)
                 const dsb:EdgeSide = this.getSide(dnb, ed.destinationAnchor)
                 switch(ssb) {
@@ -312,8 +314,8 @@ class Helpers {
           case EdgeLayout.Rounded:
               const s:Position = ed.route[0]
               const d:Position = ed.route[ed.route.length-1]
-              const sn:NodeDisplayInstance = nodes.find((n) => { return ed.edgeData.sourceObject === n.id}) as NodeDisplayInstance
-              const dn:NodeDisplayInstance = nodes.find((n) => { return ed.edgeData.destinationObject === n.id}) as NodeDisplayInstance
+              const sn:NodeDisplayInstance|JunctionDisplayInstance = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
+              const dn:NodeDisplayInstance|JunctionDisplayInstance = this. findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject) 
               const ss:EdgeSide = this.getSide(sn, ed.sourceAnchor)
               const ds:EdgeSide = this.getSide(dn, ed.destinationAnchor)
               ed.style.layout = targetLayout
@@ -330,18 +332,41 @@ class Helpers {
     set(ea)
   }
 
-  getSide = (node:NodeDisplayInstance, aid:string):EdgeSide => {
-    const na:NodeAnchorData = node.anchors.find((n) => { return n.id === aid }) as NodeAnchorData
-    if(na.position.y === 0) {
-      return EdgeSide.Top
-    } else if(na.position.y === 100) {
-      return EdgeSide.Bottom
-    } else if(na.position.x === 0) {
-      return EdgeSide.Left
-    } else if(na.position.x === 180) {
-      return EdgeSide.Right
-    } else {
-      return EdgeSide.Top
+  getSide = (di:NodeDisplayInstance|JunctionDisplayInstance, aid:string):EdgeSide => {
+    if( di instanceof NodeDisplayInstance) {
+      const na:NodeAnchorData = di.anchors.find((n) => { return n.id === aid }) as NodeAnchorData
+      if(na.position.y === 0) {
+        return EdgeSide.Top
+      } else if(na.position.y === 100) {
+        return EdgeSide.Bottom
+
+
+      } else if(na.position.x === 0) {
+        return EdgeSide.Left
+      } else if(na.position.x === 180) {
+        return EdgeSide.Right
+      } else {
+        return EdgeSide.Top
+      }
+    }
+    else {
+      const ja:JunctionAnchorData = di.anchors.find((j) => {return j.id === aid}) as JunctionAnchorData
+      switch(ja.id) {
+        case "st":
+          return EdgeSide.Top
+          break
+        case "sr": 
+          return EdgeSide.Right
+          break
+        case "sb": 
+          return EdgeSide.Bottom
+          break
+        case "sl": 
+          return EdgeSide.Left
+          break
+        default:
+          return EdgeSide.Top
+      }
     }
   }
 
@@ -360,7 +385,7 @@ class Helpers {
     return e
   }
 
-  getNodeExtents = (sn:NodeDisplayInstance, dn:NodeDisplayInstance) => {
+  getNodeExtents = (sn:DisplayInstance, dn:DisplayInstance) => {
     let ie:Extent = { topleft: structuredClone(sn.position), bottomright: structuredClone(sn.position)}
     if(sn.position.x < ie.topleft.x) { ie.topleft.x = sn.position.x}
     if(sn.position.y < ie.topleft.y) { ie.topleft.y = sn.position.y }
@@ -386,18 +411,7 @@ class Helpers {
     return e
   }
 
-  setPointerEvents = (type:string, id:string) => {
-    let nodeEls = document.getElementsByClassName("node")
-    for(let i:number = 0; i < nodeEls.length; i++) { if(nodeEls[i].id != id) {nodeEls[i].classList.add("no-pointer-events")}}
-
-    let n:Element = document.getElementById(id) as Element
-    n.classList.remove("no-pointer-events")
-  }
-
-  clearPointerEvents = () => {
-    let nodeEls = document.getElementsByClassName("node")
-    for(let i:number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.remove("no-pointer-events")}
-  }
+  
 
   getLayout = (ss:EdgeSide, ds:EdgeSide):string => {
     if(ss === ds) {
@@ -424,7 +438,7 @@ class Helpers {
     }
   }
 
-  getFiveSegmentRoute = (sn:NodeDisplayInstance, dn: NodeDisplayInstance, e:EdgeDisplayInstance) => {
+  getFiveSegmentRoute = (sn:NodeDisplayInstance|JunctionDisplayInstance, dn: NodeDisplayInstance|JunctionDisplayInstance, e:EdgeDisplayInstance) => {
     const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
     const da: NodeAnchorData = dn.anchors.find((a)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
     const ss1:EdgeSide = this.getSide(sn, sa.id)
@@ -457,7 +471,7 @@ class Helpers {
     return p
   }
 
-  calculate = (formula:string, sp:Position, sn:NodeDisplayInstance, dn:NodeDisplayInstance, sa:NodeAnchorData, da:NodeAnchorData):number => {
+  calculate = (formula:string, sp:Position, sn:DisplayInstance, dn:DisplayInstance, sa:NodeAnchorData, da:NodeAnchorData):number => {
     let r = 0;
     let e:Extent = this.getNodeExtents(sn, dn)
     let f:string = formula ? formula : ""
@@ -487,9 +501,9 @@ class Helpers {
 
     r = eval(f)
     return r
-  } 
+  }  
 
-  getRelativePosition = (sn:NodeDisplayInstance, dn:NodeDisplayInstance, gap:number):number => {
+  getRelativePosition = (sn:DisplayInstance, dn:DisplayInstance, gap:number):number => {
     let r:number = 1
 
     if(sn.position.x + sn.size.width + (2*gap) <= dn.position.x) { 
@@ -524,90 +538,6 @@ class Helpers {
       } 
     }
     return r
-  }
-
-  getFiveSegmentRouteOld = (sn:NodeDisplayInstance, dn: NodeDisplayInstance, e:EdgeDisplayInstance):Position[] => {
-    const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
-    const da: NodeAnchorData = dn.anchors.find((a)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
-    let p1: Position = {x:sn.position.x + sa.position.x, y: sn.position.y + sa.position.y}
-    let p2: Position = {x:-1, y: -1}
-    let p3: Position = {x:-1, y: -1}
-    let p4: Position = {x:-1, y: -1}
-    let p5: Position = {x:-1, y: -1}
-    let p6: Position = {x:dn.position.x + da.position.x, y: dn.position.y + da.position.y}
-    const ie:Extent = this.getNodeExtents(sn, dn)
-    const ss:EdgeSide = this.getSide(sn, sa.id)
-    const ds:EdgeSide = this.getSide(dn, da.id)
-    let dir:string = "V"
-    if(ie.bottomright.x - ie.topleft.x > ie.bottomright.y - ie.topleft.y) {
-      dir = "H"
-    }
-
-    const gap:number = 10
-    const os:number = gap
-    switch(ss) {
-      case EdgeSide.Left:
-        p2.x = p1.x - os
-        p2.y = p1.y
-        p3.x = p2.x
-        break
-      case EdgeSide.Top:
-        p2.y = p1.y - os
-        p2.x = p1.x
-        p3.y = p2.y
-        break
-      case EdgeSide.Right:
-        p2.x = p1.x + os
-        p2.y = p1.y
-        p3.x = p2.x
-        break
-      case EdgeSide.Bottom:
-        p2.y = p1.y + os
-        p2.x = p1.x
-        p3.y = p2.y
-        break
-    }
-
-    switch(ds) {
-      case EdgeSide.Left:
-        p5.x = p6.x - os
-        p5.y = p6.y
-        p4.x = p5.x
-        break
-      case EdgeSide.Top:
-        p5.y = p6.y - os
-        p5.x = p6.x
-        p4.y = p5.y
-        break
-      case EdgeSide.Right:
-        p5.x = p6.x + os
-        p5.y = p6.y
-        p4.x = p5.x
-        break
-      case EdgeSide.Bottom:
-        p5.y = p6.y + os
-        p5.x = p6.x
-        p4.y = p5.y
-        break
-    }
-
-    const relx = this.isCloser(p1.x, p6.x, p2.x, p5.x)
-    const rely = this.isCloser(p1.y, p6.y, p2.y, p5.y)
-    let rot:number = 0;
-    if(ss === EdgeSide.Top) {
-      rot = 0
-    } else if(ss === EdgeSide.Right) {
-      rot = 1 
-    } else if(ss === EdgeSide.Bottom) {
-      rot = 2
-    }
-    else {
-      rot = 3
-    }
-
-    let vg:number = this.getLateralGap(sn, dn, "V")
-    let hg:number = this.getLateralGap(sn, dn, "H")
-    return [p1, p2]
   }
 
   isCloser = (a1:number, a2:number, b1:number, b2:number):string => {
@@ -665,7 +595,6 @@ class Helpers {
   getEnumName = (enumObj:any, value:number):string => {
     return Object.values(enumObj)[value] as string
   }
-
 
   getLineStyle = (type:EdgeRelationships, defaultStyle:string):string => {
     switch(type) {

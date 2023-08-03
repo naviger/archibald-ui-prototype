@@ -3,14 +3,14 @@ import { NodeAnchorParameters } from "./NodeAnchorParameters"
 
 export type NodeParameters = {
   canvasMode:CanvasMode
-  setHoverNode:Function
+  setHover:Function
   setReady:Function
   inAddAnchor:Function
-  clearHoverNode:Function
-  setSelectedNode:Function
-  startMoveNode:Function
+  clearHover:Function
+  setSelected:Function
+  startMove:Function
   inMove:Function
-  endMoveNode:Function
+  endMove:Function
   addAnchor:Function
   anchorParams:NodeAnchorParameters
   index:number

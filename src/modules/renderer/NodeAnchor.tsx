@@ -1,13 +1,8 @@
 import { MouseEventHandler } from "react";
-// import { JsxElement } from "typescript";
-//import {color} from "../Archimate/archimateNodes";
 import { AnchorStatus } from "../enums/enumAnchorStatus";
 import { NodeAnchorParameters } from "../structure/NodeAnchorParameters";
 import { NodeAnchorData } from "../structure/NodeAnchorData";
-// import { NodeDisplayInstance } from "../structure/Node";
 import { Color } from "../utilities/Color";
-import { Position } from "../structure/Position";
-// import { EdgeDirection } from "../enums/enumEdgeDirection";
 
 export class NodeAnchor {
   constructor(nodeId:string, data:NodeAnchorData, offsetX:number, offsetY:number, params:NodeAnchorParameters) {
@@ -25,24 +20,20 @@ export class NodeAnchor {
   params:NodeAnchorParameters
 
   anchorEnter:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setHoverAnchor(e)
+    this.params.setHover(e.currentTarget.id)
   }
 
   anchorLeave:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.clearHoverAnchor(e)
+    this.params.clearHover(e.currentTarget.id)
   }
 
   anchorMouseDown:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setSelectedAnchor(e)
+    this.params.setSelectedAnchor(e.currentTarget.id, e.shiftKey)
+    e.stopPropagation()
   }
 
   anchorMouseUp:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setNewEdgeEndPoint(e)
-  }
-
-  anchorMove:MouseEventHandler<SVGGElement> = (e) => {
-    let pos: Position = {x:0, y:0}
-    this.params.dragNewEdge(e, pos);
+    this.params.setNewEdgeEndPoint(e.currentTarget.id)
   }
 
   render():JSX.Element {

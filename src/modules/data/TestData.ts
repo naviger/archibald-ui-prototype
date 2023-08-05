@@ -1380,7 +1380,7 @@ export const GetTestData = ():IModel => {
       {id: 'sl', position: {x: -10, y:0 }, flow: FlowDirection.In, status: AnchorStatus.Open, edges:[]}
     ],
     showAnchors: false,
-    size: {height:0, width:0},
+    size: {height:20, width:20},
     isVisible:false,
     status:0
   }
@@ -1397,7 +1397,7 @@ export const GetTestData = ():IModel => {
       {id: 'sl', position: {x: -10, y:0 }, flow: FlowDirection.In, status: AnchorStatus.Open, edges:[]}
     ],
     showAnchors: false,
-    size: {height:0, width:0},
+    size: {height:20, width:20},
     isVisible:false,
     status:0
   }

@@ -3,13 +3,12 @@ import { Extent, Position } from "../structure/Position";
 import { NodeAnchorData } from "../structure/NodeAnchorData";
 import { EdgeDisplayInstance } from "../structure/Edge";
 import { NodeDisplayInstance } from "../structure/Node";
-import { EdgeAnchorCollection } from "../structure/EdgeAnchorCollection";
 import { EdgeSide } from "../enums/enumEdgeSide";
 import { EdgeRelationships } from "../enums/enumEdgeRelationships";
 import { layouts } from "../data/layout"
 import { JunctionDisplayInstance } from "../structure/Junction";
-import { JunctionAnchorData } from "../structure/JunctionAnchorData";
 import { DisplayInstance } from "../structure/DisplayInstance";
+import { Anchorable } from "../structure/Anchorable";
 
 class Helpers {
 
@@ -191,37 +190,6 @@ class Helpers {
     return i
   }
 
-  getSurroundingEdgeAnchors = (id:string):EdgeAnchorCollection => {
-    let c:EdgeAnchorCollection = { prev:undefined, current:undefined, next:undefined}
-    let anchors:HTMLCollectionOf<Element> = document.getElementsByClassName("edge-anchor") as HTMLCollectionOf<Element> 
-    let anchorArray = Array.from(anchors).sort((a:Element,b:Element) => {
-      if (a && b ) {
-        let aid = a.getAttribute('id') as string
-        let bid = b.getAttribute('id') as string
-        return (aid > bid) ? 1 : -1
-      }
-      return 0
-    })
-
-    let p:Element | null = null
-    let next = false;
-    for(let i:number = 0; i < anchorArray.length;i++) {
-      if(next) {
-        c.next = anchors.item(i) as Element
-        next = false
-      }
-
-      if(anchors.item(i)?.getAttribute('id') === id) {
-        c.prev = p as Element
-        c.current = anchors.item(i) as Element
-        next =true;
-      }
-      p = anchors.item(i)
-    }
-
-    return c
-  }
-
   changeEdgeLayout = (edges:EdgeDisplayInstance[], nodes:NodeDisplayInstance[], junctions:JunctionDisplayInstance[], id:string, targetLayout: EdgeLayout, set:Function) => {
     let ea:EdgeDisplayInstance[] = edges.map((ed) => {
       
@@ -333,40 +301,32 @@ class Helpers {
   }
 
   getSide = (di:NodeDisplayInstance|JunctionDisplayInstance, aid:string):EdgeSide => {
-    if( di instanceof NodeDisplayInstance) {
-      const na:NodeAnchorData = di.anchors.find((n) => { return n.id === aid }) as NodeAnchorData
-      if(na.position.y === 0) {
+    const a:NodeAnchorData|JunctionDisplayInstance = di.anchors.find((n) => { return n.id === aid }) as Anchorable
+    switch(a.id) {
+      case "st":
         return EdgeSide.Top
-      } else if(na.position.y === 100) {
-        return EdgeSide.Bottom
-
-
-      } else if(na.position.x === 0) {
-        return EdgeSide.Left
-      } else if(na.position.x === 180) {
+        break
+      case "sr": 
         return EdgeSide.Right
-      } else {
-        return EdgeSide.Top
-      }
-    }
-    else {
-      const ja:JunctionAnchorData = di.anchors.find((j) => {return j.id === aid}) as JunctionAnchorData
-      switch(ja.id) {
-        case "st":
+        break
+      case "sb": 
+        return EdgeSide.Bottom
+        break
+      case "sl": 
+        return EdgeSide.Left
+        break
+      default:
+        if(a.position.y === 0) {
           return EdgeSide.Top
-          break
-        case "sr": 
-          return EdgeSide.Right
-          break
-        case "sb": 
+        } else if(a.position.y === di.size.height) {
           return EdgeSide.Bottom
-          break
-        case "sl": 
+        } else if(a.position.x === 0) {
           return EdgeSide.Left
-          break
-        default:
+        } else if(a.position.x === di.size.width) {
+          return EdgeSide.Right
+        } else {
           return EdgeSide.Top
-      }
+        }
     }
   }
 
@@ -397,21 +357,6 @@ class Helpers {
     if(dn.position.y + dn.size.height > ie.bottomright.y) { ie.bottomright.y = dn.position.y + dn.size.height }
     return ie
   }
-
-  getTotalExtents = (sn:NodeDisplayInstance, dn:NodeDisplayInstance, route:Position[]):Extent => {
-    let e:Extent = this.getExtents(route)
-    if(sn.position.x < e.topleft.x) { e.topleft.x = sn.position.x}
-    if(sn.position.y < e.topleft.y) { e.topleft.y = sn.position.y }
-    if(sn.position.x > e.bottomright.x) { e.bottomright.x = sn.position.x}
-    if(sn.position.y > e.bottomright.y) { e.bottomright.y = sn.position.y }
-    if(dn.position.x < e.topleft.x) { e.topleft.x = dn.position.x}
-    if(dn.position.y < e.topleft.y) { e.topleft.y = dn.position.y }
-    if(dn.position.x > e.bottomright.x) { e.bottomright.x = dn.position.x}
-    if(dn.position.y > e.bottomright.y) { e.bottomright.y = dn.position.y }
-    return e
-  }
-
-  
 
   getLayout = (ss:EdgeSide, ds:EdgeSide):string => {
     if(ss === ds) {
@@ -447,17 +392,18 @@ class Helpers {
     const n = this.getRelativePosition(sn, dn, 10)
     const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
     const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
-
+    
     let p:Position[] = []
     let d:string[] = s.split(":")
     let spCalc:string[] = d[3].split(",")
     let pCalc = d[4].split(",")
+    
     let sp:Position = {
       x: this.calculate(spCalc[0], {x:0,y:0}, sn, dn, sa, da),
       y: this.calculate(spCalc[1], {x:0,y:0}, sn, dn, sa, da)
     }
-    
-    p.push(sa.position)
+
+    p.push(sp)
     pCalc.forEach((pi) => {
       let c = pi.replace("[", "").replace("]", "").split("|")
       if(c && c[0].length > 1 && c[1].length > 1) {
@@ -467,8 +413,16 @@ class Helpers {
       } else {
       }
     })
+
     p.push(da.position)
     return p
+  }
+
+  isJunction = (i:DisplayInstance):boolean => {
+    if(i.anchors.length === 4 && i.anchors.findIndex((a) => { return a.id === 'st'}) > -1) {
+      return true
+    }
+    return false
   }
 
   calculate = (formula:string, sp:Position, sn:DisplayInstance, dn:DisplayInstance, sa:NodeAnchorData, da:NodeAnchorData):number => {
@@ -483,16 +437,16 @@ class Helpers {
     f = f.replaceAll('d.w', dn.size.width.toString())
     f = f.replaceAll('d.y', dn.position.y.toString())
     f = f.replaceAll('d.h', sn.size.height.toString())
-    f = f.replaceAll("sa.x", sa.position.x.toString())
-    f = f.replaceAll('sa.y', sa.position.y.toString())
+    f = f.replaceAll("sa.x", (sn.position.x + sa.position.x).toString())
+    f = f.replaceAll('sa.y', (sn.position.y + sa.position.y).toString())
     if(sp.x) {
       f = f.replaceAll('sp.x', sp.x.toString())
     }
     if(sp.y) { 
       f = f.replaceAll('sp.y', sp.y.toString())
     }
-    f = f.replaceAll("da.x", da.position.x.toString())
-    f = f.replaceAll('da.y', da.position.y.toString())
+    f = f.replaceAll("da.x", (dn.position.x + da.position.x).toString())
+    f = f.replaceAll('da.y', (dn.position.y + da.position.y).toString())
     f = f.replaceAll('e.tl.t', e.topleft.y.toString() + " - 10 ")
     f = f.replaceAll('e.tl.l', e.topleft.y.toString() + " - 10 ")
     f = f.replaceAll("e.br.b", e.bottomright.y.toString() + " + 10 ")
@@ -538,58 +492,6 @@ class Helpers {
       } 
     }
     return r
-  }
-
-  isCloser = (a1:number, a2:number, b1:number, b2:number):string => {
-    const d1 = Math.abs(a2-a1)
-    const d2 = Math.abs(b2-b1)
-    return d2 < d1 ? "closer" : d2 > d1 ? "farther" : "equal"   
-  }
-    
-  getLateralGap = (sn:NodeDisplayInstance, dn:NodeDisplayInstance, dir:String):number => {
-    let ie:Extent = this.getNodeExtents(sn, dn)
-    let r:number = 0
-    if(dir === "H") {
-      if(sn.position.x === ie.topleft.x) {
-        r = dn.position.x - (sn.position.x + sn.size.width)
-      } else {
-        r = sn.position.x - (dn.position.x + dn.size.width)
-      }
-    } else {
-      if(sn.position.y === ie.topleft.y) {
-        r =  dn.position.y - (sn.position.y + sn.size.height)
-      } else {
-        r =  sn.position.y - (dn.position.y + dn.size.height)
-      }
-    }
-
-    return r < 0 ? 0 :r
-  }
-
-  hasHorizontalGap =  (sn:NodeDisplayInstance, dn:NodeDisplayInstance, gap:number):boolean => {
-    if(sn.position.x < dn.position.x) {
-      return sn.position.x + sn.size.width + gap < dn.position.x ? true : false
-    } else {
-      return dn.position.x + sn.size.width + gap < sn.position.x ? true : false
-    }
-  }
-
-  hasVerticalGap =  (sn:NodeDisplayInstance, dn:NodeDisplayInstance, gap:number):boolean => {
-    if(sn.position.y < dn.position.y) {
-      return sn.position.y + sn.size.height + gap < dn.position.y ? true : false
-    } else {
-      return dn.position.y + sn.size.height + gap < sn.position.y ? true : false
-    }
-  }
-
-  getSlope = (p1:Position, p2:Position):number => {
-    if(p1.x === p2.x && p1.y != p2.y) {
-      return p1.y > p2.y ? 0 : 180
-    } else if (p1.x != p2.x && p1.y === p2.y) {
-      return p1.x > p2.x ? 170 : 90
-    } else {
-      return 180
-    }
   }
 
   getEnumName = (enumObj:any, value:number):string => {

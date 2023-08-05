@@ -30,24 +30,35 @@ export class JunctionHandler {
   }
 
   clearHover = (id: string) => {
-    let ja = this.canvasController.junctions.map((j) => {
-      j.showAnchors = false
-      return j
-    })
-    this.canvasController.setJunctions(ja)
+    if(this.canvasController.mode != CanvasMode.AddEdge) {
+      let ja = this.canvasController.junctions.map((j) => {
+        j.showAnchors = false
+        j.isSelected = false
+        return j
+      })
+
+      this.canvasController.setJunctions(ja)
+    }
   }
 
   setSelected = (id:string, pos:Position, offset:Position) => {
     const el = document.getElementById(id)
+    let ja:Array<JunctionDisplayInstance> = this.canvasController.junctions.map((j) => {
+      if(j.id === id) {
+        j.isSelected = !j.isSelected
+      }
+      return j
+    })
+
+    this.canvasController.setJunctions(ja)
     this.canvasController.setDragData({type:"junction", currentId:id, offset: offset, position: pos})
     this.canvasController.setMode(CanvasMode.MoveJunction)
     this.canvasController.setSelected("junction:" + id)
   }
 
 
-  move = (pos:Position) => {
+  move = (id: string, pos:Position) => {
     if( this.canvasController.mode === CanvasMode.MoveJunction) {
-      
       let ea:Array<EdgeDisplayInstance> = this.canvasController.edges.map((ed) => {
         if(ed.edgeData.sourceObject === this.canvasController.dragData.currentId && ed.style.layout === EdgeLayout.Bezier ) {
           let p:Array<Position> = structuredClone(ed.route)
@@ -77,7 +88,7 @@ export class JunctionHandler {
         if(j.id === this.canvasController.dragData.currentId) {
           j.position.x = pos.x - this.canvasController.dragData.offset.x
           j.position.y = pos.y - (this.canvasController.dragData.offset.y)
-
+          j.isSelected = true
           for(let i=0; i < j.anchors.length; i++) {
             if(j.anchors[i].edges.length > 0) {
               j.anchors[i].edges.forEach((et: string)=> {
@@ -93,7 +104,15 @@ export class JunctionHandler {
       })
       this.canvasController.setJunctions(ja)
       this.canvasController.setEdges(ea)
-    } 
+    } else {
+      let ja:Array<JunctionDisplayInstance> = this.canvasController.junctions.map((j, i)=>{
+        if(j.id === id ) {
+          j.isSelected = true
+        } 
+        return j
+      })
+      this.canvasController.setJunctions(ja);
+    }
   }
 
   drop = () => {
@@ -106,15 +125,15 @@ export class JunctionHandler {
     const jid= id.split(":")[0]
     const aid = id.split(":")[1]
     if(key) {
-      let jj:JunctionDisplayInstance = this.canvasController.junctions.find((jd)=> { return jd.id === jid}) as JunctionDisplayInstance
-      let aa:JunctionAnchorData = jj.anchors.find((an) => {return an.id === aid} ) as JunctionAnchorData
+      let j:JunctionDisplayInstance = this.canvasController.junctions.find((jd)=> { return jd.id === jid}) as JunctionDisplayInstance
+      let aa:JunctionAnchorData = j.anchors.find((an) => {return an.id === aid} ) as JunctionAnchorData
       if(aa.status === AnchorStatus.Open || (aa.status === AnchorStatus.Available && aa.flow === FlowDirection.Out)) {
         el?.setAttribute("stroke-width", "3")
         el?.setAttribute("stroke", "green")
         let ned = this.canvasController.newEdge
         ned.edgeData.sourceObject = jid
         ned.sourceAnchor=aid
-        ned.route=[{x:jj.position.x + aa.position.x , y:jj.position.y + aa.position.y}, {x:jj.position.x + aa.position.x, y:jj.position.y + aa.position.y}]
+        ned.route=[{x:j.position.x + aa.position.x , y:j.position.y + aa.position.y}, {x:j.position.x + aa.position.x, y:j.position.y + aa.position.y}]
         this.canvasController.setMode(CanvasMode.AddEdge)
         this.canvasController.setNewEdge(ned)
       }
@@ -206,7 +225,6 @@ export class JunctionHandler {
         return n;
       })
       
-
       if(foundSrc && foundDst) {
         this.canvasController.setJunctions(ja)
         if(na.length > 0) this.canvasController.setNodes(na)

@@ -139,7 +139,7 @@ export const Canvas = (props:CanvasProps) => {
     } else if(mode===CanvasMode.MoveJunction) {
       pos.x = e.pageX 
       pos.y = e.pageY 
-      junctionHandler.move(pos)
+      junctionHandler.move(dragData.currentId,  pos)
     } else if(mode===CanvasMode.MoveEdgeAnchor) {
       pos.x = e.pageX - dragData.offset.x
       pos.y = e.pageY - dragData.offset.y

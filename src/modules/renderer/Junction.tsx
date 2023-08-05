@@ -19,6 +19,7 @@ export class Junction {
   showAnchors:boolean 
   params:JunctionParameters
   r:number = 10
+  selectedAnchor:string = ""
 
   constructor(junction:JunctionDisplayInstance, params:JunctionParameters) {
     this.id = junction.id
@@ -33,14 +34,15 @@ export class Junction {
   anchorMouseOver: MouseEventHandler<SVGGElement> = (e) => {
     e.currentTarget.setAttribute("stroke", "green" )
     e.currentTarget.setAttribute("stroke-width", "2" )
-    e.stopPropagation()
+    this.selectedAnchor = e.currentTarget.id
   }
 
   anchorMouseOut: MouseEventHandler<SVGGElement> = (e) => {
     e.currentTarget.setAttribute("stroke", "grey" )
     e.currentTarget.setAttribute("stroke-width", "1" )
-
+    //e.preventDefault()
     e.stopPropagation()
+    this.selectedAnchor = ""
   }
 
   anchorMouseUp: MouseEventHandler<SVGGElement> = (e) => {
@@ -61,17 +63,26 @@ export class Junction {
   }
 
   mouseOver:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.setHover(e.currentTarget.id.split(":")[0])
+    if(this.selectedAnchor.length === 0) {
+      this.isSelected = true
+      this.params.setHover(e.currentTarget.id.split(":")[0])
+    }
   }
 
   mouseMove:MouseEventHandler<SVGGElement> = (e) => {
-    if(!this.showAnchors) { this.showAnchors = true }
-    this.params.move({x: e.pageX, y:e.pageY})
+    if(this.selectedAnchor.length === 0) {
+      this.isSelected=true
+      //if(!this.showAnchors) { this.showAnchors = true }
+      this.params.move(e.currentTarget.id.split(":")[0],{x: e.pageX, y:e.pageY})
+    }
   }
 
   mouseOut:MouseEventHandler<SVGGElement> = (e) => {
-    if((e.pageX < this.position.x - (this.r+4) || e.pageX > this.position.x + (this.r+4)) || (e.pageY < this.position.y - (this.r+4) || e.pageY > this.position.y + (this.r+4))) {
-      this.params.clearHover(e.currentTarget.id.split(":")[0])
+    if(this.selectedAnchor.length === 0) {
+      let o = 20
+      if((e.pageX < this.position.x - o || e.pageX > this.position.x + o) || (e.pageY < this.position.y - o || e.pageY > this.position.y + o)) {
+        this.params.clearHover(e.currentTarget.id.split(":")[0])
+      }
     }
   }
 
@@ -87,7 +98,8 @@ export class Junction {
 
     let anchors:React.JSX.Element[] = []
     
-    if(this.showAnchors) {
+    if( this.isSelected ) {
+      let o = 4
       anchors = this.anchors.map((a) => {
         let fill:string = "white"
         if(a.status === AnchorStatus.Occupied && a.flow === FlowDirection.In) {
@@ -95,17 +107,37 @@ export class Junction {
         } else  if(a.status === AnchorStatus.Occupied && a.flow === FlowDirection.Out) {
           fill = "#00ff90"
         }
+        let xo:number = o
+        let yo:number = o
+        switch (a.id) {
+          case "st":
+            xo = -o
+            yo = -2*o
+            break 
+          case "sr":
+            xo = 0
+            yo = -o
+            break
+          case "sb":
+            xo = -o
+            yo = 0
+            break
+          case "sl":
+            xo = -2*o
+            yo = -o
+            break   
+        }
         return (
-          <rect className="junction-anchor" id={this.id + ":" + a.id} key={this.id + ":" + a.id} x={this.position.x + a.position.x - 4} y={this.position.y + a.position.y - 4} height="8" width="8" fill={fill} stroke='grey' strokeWidth='1' onMouseDown={this.anchorMouseDown} onMouseUp={this.anchorMouseUp} onMouseEnter={this.anchorMouseOver} onMouseLeave={this.anchorMouseOut} />
+          <rect className="junction-anchor" id={this.id + ":" + a.id} key={this.id + ":" + a.id} x={this.position.x + a.position.x + xo} y={this.position.y + a.position.y + yo} height="8" width="8" fill={fill} stroke='grey' strokeWidth='1' onMouseDown={this.anchorMouseDown} onMouseUp={this.anchorMouseUp} onMouseEnter={this.anchorMouseOver} onMouseLeave={this.anchorMouseOut} />
         )
       })
     }
 
     return (
       <g  key={this.id} >
-        <circle id={this.id + ":shadow"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 4} fill="green" fillOpacity="0.1" stroke="none" strokeWidth="1" />
-        <circle id={this.id} className={"junction" + (this.type===JunctionType.And ? " and" : " or")} cx={this.position.x } cy={this.position.y} r={this.r} fill={fill} stroke="grey" strokeWidth="1"  />
-        <circle id={this.id + ":mousehandler"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 4} fill="green" fillOpacity="0.0" stroke="none" strokeWidth="1" onMouseOver={this.mouseOver} onMouseMove={this.mouseMove} onMouseOut={this.mouseOut} onMouseDown={this.mouseDown}  onMouseUp={this.mouseUp}/>
+        <circle id={this.id + ":shadow"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 9} fill="green" fillOpacity="0.1" stroke="none" strokeWidth="1" onMouseOver={this.mouseOver} onMouseOut={this.mouseOut} />
+        <circle id={this.id} className={"junction" + (this.type===JunctionType.And ? " and" : " or")} cx={this.position.x } cy={this.position.y} r={this.r} fill={fill} stroke="grey" strokeWidth="1"   onMouseMove={this.mouseMove}  onMouseDown={this.mouseDown}  onMouseUp={this.mouseUp} />
+        {/* <circle id={this.id + ":mousehandler"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 4} fill="green" fillOpacity="0.0" stroke="none" strokeWidth="1" /> */}
         {anchors} 
       </g>
     )

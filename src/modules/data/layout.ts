@@ -53,7 +53,7 @@ export const layouts = [
   'CW:Right,Bottom:7:,:[e.br.r|sa.y],[e.br.r|e.br.b],[|],[da.x|e.br.b]',
   'CW:Right,Bottom:8:,:[e.br.r|sa.y],[e.br.r|e.br.b],[|],[da.x|e.br.b]',
   'CW:Right,Bottom:9:,d.y + d.h + ((s.y - (d.y + d.h))/2):[e.br.r|sa.y],[e.br.r|sp.y],[|],[da.x|sp.y]',
-  'CW:Bottom,Left:1:,:[sa.x|da.y],[|],[|],[|]',
+  'CW:Bottom,Left:1:,:[da.x|sa.y],[|],[|],[|]',
   'CW:Bottom,Left:2:s.x + s.w + ((d.x - (s.x + s.w))/2),:[sa.x|e.br.b],[sp.x|e.br.b],[|],[sp.x|da.y]',
   'CW:Bottom,Left:3:s.x + s.w + ((d.x - (s.x + s.w))/2),:[sa.x|e.br.b],[sp.x|e.br.b],[|],[sp.x|da.y]',
   'CW:Bottom,Left:4:,s.y + s.h + ((d.y - (s.y + s.h))/2):[sa.x|sp.y],[e.tl.l|sp.y],[|],[e.tl.l|da.y]',

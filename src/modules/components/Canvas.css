@@ -77,10 +77,8 @@ svg {
   left:20px;
 }
 
-.junction {
-  pointer-events:none;
-}
-.junction:hover, .junction-shadow:hover {
+.junction:hover, 
+.junction-shadow:hover {
   border-color: blueviolet;
   cursor:grab;
 }

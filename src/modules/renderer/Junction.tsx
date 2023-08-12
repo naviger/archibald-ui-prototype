@@ -40,8 +40,6 @@ export class Junction {
   anchorMouseOut: MouseEventHandler<SVGGElement> = (e) => {
     e.currentTarget.setAttribute("stroke", "grey" )
     e.currentTarget.setAttribute("stroke-width", "1" )
-    //e.preventDefault()
-    e.stopPropagation()
     this.selectedAnchor = ""
   }
 
@@ -54,6 +52,7 @@ export class Junction {
   }
 
   mouseUp:MouseEventHandler<SVGGElement> = (e) => {
+    //console.log("MOUSEUP:", e.currentTarget)
     this.params.drop()
   }
 
@@ -70,9 +69,9 @@ export class Junction {
   }
 
   mouseMove:MouseEventHandler<SVGGElement> = (e) => {
+    //console.log("MOUSE MOVE:", e.button)
     if(this.selectedAnchor.length === 0) {
       this.isSelected=true
-      //if(!this.showAnchors) { this.showAnchors = true }
       this.params.move(e.currentTarget.id.split(":")[0],{x: e.pageX, y:e.pageY})
     }
   }
@@ -134,10 +133,9 @@ export class Junction {
     }
 
     return (
-      <g  key={this.id} >
+      <g  key={this.id} id={this.id} className="junction junction-ptr">
         <circle id={this.id + ":shadow"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 9} fill="green" fillOpacity="0.1" stroke="none" strokeWidth="1" onMouseOver={this.mouseOver} onMouseOut={this.mouseOut} />
-        <circle id={this.id} className={"junction" + (this.type===JunctionType.And ? " and" : " or")} cx={this.position.x } cy={this.position.y} r={this.r} fill={fill} stroke="grey" strokeWidth="1"   onMouseMove={this.mouseMove}  onMouseDown={this.mouseDown}  onMouseUp={this.mouseUp} />
-        {/* <circle id={this.id + ":mousehandler"} className="junction-shadow" cx={this.position.x} cy={this.position.y} r={this.r + 4} fill="green" fillOpacity="0.0" stroke="none" strokeWidth="1" /> */}
+        <circle id={this.id + ":circle"} className={"junction" + (this.type===JunctionType.And ? "-and" : "-or")} cx={this.position.x } cy={this.position.y} r={this.r} fill={fill} stroke="grey" strokeWidth="1"   onMouseMove={this.mouseMove}  onMouseDown={this.mouseDown}  onMouseUp={this.mouseUp} />
         {anchors} 
       </g>
     )

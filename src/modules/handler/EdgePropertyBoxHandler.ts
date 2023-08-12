@@ -18,41 +18,52 @@ export class EdgePropertyBoxHandler {
 
   dragStart = (id:string, key:boolean, pos:Position) => {
     if(!key && this.canvasController.mode === CanvasMode.Ready){
-      const el = document.getElementById(id)
+      const el = document.getElementById(id) as Element
       let nodeEls = document.getElementsByClassName("toggle-pointer")
-      for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-pointer-events"); }
-      const bbox = el?.getBoundingClientRect() as DOMRect;
-      this.canvasController.setDragData({type: 'property-box', currentId: id, offset:{x: pos.x - bbox.left, y:pos.y - bbox.top}, position:pos})
-      this.canvasController.setMode(CanvasMode.MovePropertyBox)
+      let pb:Element = document.getElementById("edge-property-box") as Element
+      for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-display"); }
+      this.canvasController.setDragData({type: 'property-box', currentId: id, offset:{x: (el?.clientLeft - pos.x), y:(el?.clientTop - pos.y)}, position:pos})
+      this.canvasController.setCanvasMode(CanvasMode.MovePropertyBox, id)
     }
   }
 
   dragDone = (id:string, key:boolean) => {
     let nodeEls = document.getElementsByClassName("toggle-pointer")
-    for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.remove("no-pointer-events"); }
+    for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.remove("no-display"); }
     this.canvasController.setDragData({type: 'none', currentId: "", offset:{x: -1, y:-1}, position:{x: -1, y: -1}})
-    this.canvasController.setMode(CanvasMode.Ready)
+    this.canvasController.setCanvasMode(CanvasMode.Ready)
   }
 
-    setEdgeLayout = (id:string, layout:EdgeLayout) => {
-      this.helpers.changeEdgeLayout(this.canvasController.edges, this.canvasController.nodes, this.canvasController.junctions, id, layout, this.canvasController.setEdges)
+  move = (id:string, pos:Position) => {
+    let box:HTMLElement = document.getElementById(id) as HTMLElement
+    let bbox:DOMRect = box.getBoundingClientRect()
+    //console.log("MOVE: ", id, pos, bbox, this.canvasController.dragData.offset)
+    if(this.canvasController.mode === CanvasMode.MovePropertyBox) {
+      if(box) {
+        box.setAttribute("style", "left: " + (pos.x) + "px; top: " + (pos.y) + "px;")
+      } 
     }
+  }
 
-    setEdgeType = (tgt:string, id:EdgeRelationships) => {
-      let ea:EdgeDisplayInstance[] = this.canvasController.edges.map((ed) => {
-        if(ed.edgeData.edgeId === tgt) {
-          ed.edgeData.type = id
-        }
-        return ed
-      })
-      this.canvasController.setEdges(ea)
-    }
+  setEdgeLayout = (id:string, layout:EdgeLayout) => {
+    this.helpers.changeEdgeLayout(this.canvasController.edges, this.canvasController.nodes, this.canvasController.junctions, id, layout, this.canvasController.setEdges)
+  }
 
-    remove =  () => {
-      let tgt:number = this.canvasController.edges.findIndex((e)=>{return e.isSelected===true})
-      let ea = structuredClone(this.canvasController.edges)
-      ea.splice(tgt, 1)
-      this.canvasController.setEdges(ea)
-    }
+  setEdgeType = (tgt:string, id:EdgeRelationships) => {
+    let ea:EdgeDisplayInstance[] = this.canvasController.edges.map((ed) => {
+      if(ed.edgeData.edgeId === tgt) {
+        ed.edgeData.type = id
+      }
+      return ed
+    })
+    this.canvasController.setEdges(ea)
+  }
+
+  remove =  () => {
+    let tgt:number = this.canvasController.edges.findIndex((e)=>{return e.isSelected===true})
+    let ea = structuredClone(this.canvasController.edges)
+    ea.splice(tgt, 1)
+    this.canvasController.setEdges(ea)
+  }
 
 }

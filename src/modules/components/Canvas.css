@@ -71,6 +71,11 @@ svg {
   /* border: solid 1px red; */
 }
 
+.no-display {
+  /* display:none; */
+  pointer-events: none;
+}
+
 .debug-data {
   position:absolute;
   top:50px;

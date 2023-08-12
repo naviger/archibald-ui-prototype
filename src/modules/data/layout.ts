@@ -109,7 +109,7 @@ export const layouts = [
   'OS:Left,Right:9:,:[sp.x|sa.y],[|],[|],[sp.x|da.y]',
   'CCW:Top,Left:1:s.x + s.w + ((d.x - (s.x + s.w))/2),:[sa.x|e.tl.t],[sp.x|e.tl.t],[|],[sp.x|da.y]',
   'CCW:Top,Left:2:s.x + s.w + ((d.x - (s.x + s.w))/2),:[sa.x|e.tl.t],[sp.x|e.tl.t],[|],[sp.x|da.y]',
-  'CCW:Top,Left:3:,:[sa.x|da.y],[|],[|],[|]',
+  'CCW:Top,Left:3:,:[da.x|sa.y],[|],[|],[|]',
   'CCW:Top,Left:4:,:[sa.x|e.tl.t],[e.tl.l|e.tl.t],[|],[e.tl.l|da.y]',
   'CCW:Top,Left:5:,:[sa.x|e.tl.t],[e.tl.l|e.tl.t],[|],[e.tl.l|da.y]',
   'CCW:Top,Left:6:,d.y + d.h + ((s.y - (d.y + d.h))/2):[sa.x|sp.y],[e.tl.l|sp.y],[|],[e.tl.l|da.y]',

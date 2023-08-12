@@ -1,5 +1,7 @@
 import { CanvasMode } from "../enums/enumCanvasMode";
 import { EdgeConstraints } from "../enums/enumEdgeConstraints";
+import { EdgeDirection } from "../enums/enumEdgeDirection";
+import { EdgeLayout } from "../enums/enumEdgeLayout";
 import { EdgeDisplayInstance } from "../structure/Edge";
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { NodeDisplayInstance } from "../structure/Node";
@@ -40,9 +42,8 @@ export class EdgeHandler {
   }
 
   setSelectedEdge = (id:string, key:boolean, pos:Position) => {
-    
     const eid = id.split(":")[0]
-
+    this.canvasController.setSelectedItem("edge", id)
     let ea: Array<EdgeDisplayInstance> = this.canvasController.edges.map((e, i) => {
       if (e.id === eid) {
         e.isSelected = true
@@ -52,24 +53,25 @@ export class EdgeHandler {
       return e
     });
 
-    this.canvasController.setSelected("edge:" + id)
     let nodeEls = document.getElementsByClassName("node");
-    for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-pointer-events"); }
-    
     this.canvasController.setEdges(ea);
   }
 
   dragDone = () => {
-    if(this.canvasController.mode === CanvasMode.MoveEdgeAnchor) {
+    switch(this.canvasController.mode) {
+      case CanvasMode.MoveEdgeAnchor:
         this.canvasController.setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
+        break
+      case CanvasMode.MoveEdgeEndAnchor:
+        this.canvasController.setCanvasMode(CanvasMode.Ready)
     }
   }
 
-  addEdge = (pos:Position, bbox:DOMRect) => {
+  moveAddEdge = (pos:Position, bbox:DOMRect) => {
     let ed:EdgeDisplayInstance = this.canvasController.newEdge
     ed.route[1] = {x:pos.x- bbox.left, y:pos.y-bbox.top}
       
-    let el = document.getElementById('temp')
+    let el = document.getElementById('temp-edge:edge')
     if(el) {
         let sn:NodeDisplayInstance|JunctionDisplayInstance = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, this.canvasController.newEdge.edgeData.sourceObject) as NodeDisplayInstance|JunctionDisplayInstance
         let sa:NodeAnchorData = sn.anchors.find((a) => { return a.id === this.canvasController.newEdge.sourceAnchor}) as NodeAnchorData
@@ -77,6 +79,140 @@ export class EdgeHandler {
         el.setAttribute("points", p)
       }
       this.canvasController.setNewEdge(ed);
+  }
+
+  moveEdgeEndPoint = (pos:Position, bbox:DOMRect) => {
+    if(this.canvasController.mode & CanvasMode.MoveEdgeEndAnchor) {
+      let ie = this.canvasController.edges.findIndex((e) => e.id === this.canvasController.dragData.currentId.split(":")[0])
+      if(ie >= 0) {
+        let el = document.getElementById('temp-edge:edge')
+        let ia = Number.parseInt(this.canvasController.dragData.currentId.split(":")[1])
+        //console.log("EA:", this.canvasController.edges[ie], ia, this.canvasController.edges[ie].route[ia], { x: pos.x - bbox.left, y:  pos.y - bbox.top})
+        let r:Array<Position> = structuredClone(this.canvasController.edges[ie].route)
+        let l = this.canvasController.edges[ie].route.length
+        let p:string = ""
+        if(this.canvasController.edges[ie].style.layout === EdgeLayout.Straight) {
+          r[ia] =  { x: pos.x - bbox.left, y:  pos.y - bbox.top}
+          p =  (r[0].x) +"," + (r[0].y) + " " + (r[1].x) +"," + (r[1].y)
+        } else if(this.canvasController.edges[ie].style.layout === EdgeLayout.Bezier) {
+          //console.log("BEZIER ROUTE: ", this.canvasController.dragData.currentId.split(":")[1], r, ia)
+          if(this.canvasController.dragData.currentId.split(":")[1] === "S") {
+            console.log("M", this.canvasController.dragData.currentId.split(":")[1])
+            r[0] =  { x: pos.x - bbox.left, y:  pos.y - bbox.top}
+          } else {
+            console.log("S", this.canvasController.dragData.currentId.split(":")[1])
+            r[5] = { x: pos.x - bbox.left, y:  pos.y - bbox.top}
+          }
+          
+          p = "M " + (r[0].x) + "," + (r[0].y) + " "
+          p+= "C " + (r[1].x) + "," + (r[1].y) + " " + (r[2].x) + "," + (r[2].y) + " "  + (r[3].x) + "," + (r[3].y) + " "
+          p+= "S " + (r[4].x) + "," + (r[4].y )+ " " + (r[5].x) + "," + (r[5].y)
+
+          el?.setAttribute("d", p)
+        } else if(this.canvasController.edges[ie].style.layout === EdgeLayout.Rounded) {
+          console.log("ROUNDED!", r, this.canvasController.dragData)
+          let r2:Position[] = structuredClone(r)
+          for(let i:number = 0; i < r.length; i++) {
+            if(i === ia) {
+              r2[ia]= {x: (pos.x - bbox.left), y:(pos.y - bbox.top)}
+            } else if(i === ia + 1 ) {
+              if(r[i].x === r[i + 1].x) {
+                r2[i].y =(pos.y - bbox.top)
+              } else {
+                r2[i].x = (pos.x - bbox.left)
+              }
+            } else if(i === ia - 1 ) {
+              if(r[i].x === r[i - 1].x) {
+                r2[i].y =(pos.y - bbox.top)
+              } else {
+                r2[i].x = (pos.x - bbox.left)
+              }
+            }
+          }
+
+          console.log("R2:", r2)
+          let ptprev:Position = r[0]
+          r2.forEach((pt:Position, i:number) => {
+            if(i === 0) {
+              p = "M " + pt.x + "," + pt.y + " " 
+            }
+            else if( i < r.length-1) {
+              let angle1 = this.helpers.getStraightAngle(ptprev, pt)
+              let angle2 = this.helpers.getStraightAngle(pt, r2[i+1])
+              switch(angle1) {
+                case EdgeDirection.Right:
+                  console.log("R",i, this.helpers.getEnumName(EdgeDirection, angle2))
+                  p += " L " + (pt.x - 10) + "," + pt.y + " " 
+                  if(angle2 === EdgeDirection.Down) {
+                    p += "a10,10 5 0,1 10,10 "
+                  } else if(angle2 === EdgeDirection.Up) {
+                    p+= "a10,10 5 0,0 10,-10 "
+                  }
+                  break
+                case EdgeDirection.Down:
+                  console.log("D",i, this.helpers.getEnumName(EdgeDirection, angle2))
+                  p += " L " + pt.x + "," + (pt.y - 10) + " "
+                  if(angle2 === EdgeDirection.Right) {
+                    p += "a10,10 5 0,0 10,10 "
+                  } else if(angle2 === EdgeDirection.Left) {
+                    p += "a10,10 5 0,1 -10,10"
+                  }
+                  break
+                case EdgeDirection.Left:
+                  console.log("L",i, this.helpers.getEnumName(EdgeDirection, angle2))
+                  p += " L " + (pt.x + 10) + "," + pt.y + " " 
+                  if(angle2 === EdgeDirection.Down) {
+                    p += "a10,10 5 0,0 -10,10"
+                  } else if(angle2 === EdgeDirection.Up) {
+                    p += "a10,10 5 0,1 -10,-10"
+                  }
+                  break
+                case EdgeDirection.Up:
+                  console.log("U",i, this.helpers.getEnumName(EdgeDirection, angle2))
+                  p += " L " + pt.x + "," + (pt.y + 10) + " "
+                  if(angle2 === EdgeDirection.Right) {
+                    p +=  "a10,10 90 0,1 10,-10 "
+                  } else if(angle2 === EdgeDirection.Left) {
+                    p+= "a10,10 90 0,0 -10,-10 "
+                  }
+                  break
+              }
+            } else {
+              p +=  "L " + pt.x + "," +pt.y + " "
+            }
+            ptprev = pt
+            //i++
+          })
+          console.log("SET DATA: ", el?.id, p)
+          el?.setAttribute("d", p)
+        } else  if(this.canvasController.edges[ie].style.layout === EdgeLayout.NinetyDegree) {
+          for(let i:number = 0; i < r.length; i++) {
+            if(i === ia) {
+              p += "" + (pos.x - bbox.left).toString() + "," + (pos.y - bbox.top).toString() + " "
+            } else if(i === ia + 1 ) {
+              if(r[i].x === r[i + 1].x) {
+                p +=  r[i].x + ", " + (pos.y - bbox.top).toString() + " "
+              } else {
+                p +=  (pos.x - bbox.left).toString() + "," + r[i].y + " "
+              }
+            } else if(i === ia - 1 ) {
+              if(r[i].x === r[i - 1].x) {
+                p +=  r[i].x + ", " + (pos.y - bbox.top).toString() + " "
+              } else {
+                p +=  (pos.x - bbox.left).toString() + "," + r[i].y + " "
+              }
+            }
+            else {
+              p += r[i].x + "," + r[i].y + " "
+            }
+          }
+
+          el?.setAttribute("points", p)
+        }
+        // let el2 = document.getElementById(this.canvasController.dragData.currentId.split(":")[0] + ":edge")
+        // el2?.setAttribute("stroke-opacity", "0.1")
+      }
+    }
   }
 }
 
@@ -89,35 +225,57 @@ export class EdgeAnchorHandler {
 
   selectAnchor = (id:string, pos:Position) => {
     const el = document.getElementById(id)  
+    //console.log("SELECT ANCHOR:", id, EdgeConstraints, el)
     const bbox = el?.getBoundingClientRect() as DOMRect
-    this.canvasController.setMode(CanvasMode.MoveEdgeAnchor)
-    this.canvasController.setDragData({ type: 'edgeAnchor', currentId: id, offset: { x: pos.x - bbox?.left, y: pos.y - bbox.top }, position: pos })
+    const constraint:number = Number.parseInt(el?.getAttribute("data-constraint") as string)
+
+    if(EdgeConstraints.EndAnchor & constraint) {
+      let elE = document.getElementById(id.split(":")[0] + ":edge")
+      //console.log("EDGE:", elE)
+      let elT = document.getElementById("temp-edge:edge") as Element
+      let elG = elT?.parentElement
+      elT?.parentNode?.removeChild(elT)
+      elT = elE?.cloneNode() as Element
+      elT.id = "temp-edge:edge"
+      //console.log("elT: ", elT)
+      elG?.append(elT)
+      elT = elE?.cloneNode(true) as Element
+      let aid:string =  id.split(":")[1]
+      elT.setAttribute("data-edge-ref", id.split(":")[0])
+      elT.setAttribute("data-anchor-ref", aid) 
+      //elT.setAttribute("data-d", elE?.getAttribute("d") as string)
+      this.canvasController.setCanvasMode(CanvasMode.MoveEdgeEndAnchor, id)
+      this.canvasController.setDragData({ type: 'edgeAnchor', currentId: id, offset: { x: pos.x - bbox?.left, y: pos.y - bbox.top }, position: pos })
+    } else {
+      this.canvasController.setCanvasMode(CanvasMode.MoveEdgeAnchor, id)
+      this.canvasController.setDragData({ type: 'edgeAnchor', currentId: id, offset: { x: pos.x - bbox?.left, y: pos.y - bbox.top }, position: pos })
+    }
   }
 
   moveAnchor = (pos:Position, bbox:DOMRect) => {
     let ea:Array<EdgeDisplayInstance> = this.canvasController.edges.map((ed:EdgeDisplayInstance) => { 
       if(ed.id === this.canvasController.dragData.currentId.split(":")[0] ) { 
-        let i:number = 1
-        let p:Array<Position> = structuredClone(ed.route)
-          
+        //let i:number = 0
+        let r:Array<Position> = structuredClone(ed.route)
+        
         if(this.canvasController.dragData.currentId.endsWith(":M0")) {
           let ep:Element|null = document.getElementById(this.canvasController.dragData.currentId)  
           let hp:Element|null = document.getElementById(this.canvasController.dragData.currentId.split(":")[0] + ":HC2:C")  
           let offset:Position = { x: (Number.parseInt(ep?.getAttribute("x") as string) - Number.parseInt(hp?.getAttribute("cx") as string)),
-                                   y: (Number.parseInt(ep?.getAttribute("y") as string) - Number.parseInt(hp?.getAttribute("cy") as string))}
-          p[2] = {x:  pos.x - bbox.left - offset.x , y: pos.y - bbox.top - offset.y}
-          p[3] = { x: pos.x - bbox.left, y:  pos.y - bbox.top}
+                                  y: (Number.parseInt(ep?.getAttribute("y") as string) - Number.parseInt(hp?.getAttribute("cy") as string))}
+          r[2] = {x:  pos.x - bbox.left - offset.x , y: pos.y - bbox.top - offset.y}
+          r[3] = { x: pos.x - bbox.left, y:  pos.y - bbox.top}
 
-          ed.route = p
-
+          ed.route = r
+        
         } else {
           const target:number = Number.parseInt(this.canvasController.dragData.currentId.split(":")[1].split(".")[0])
           const a:HTMLElement = document.getElementById(this.canvasController.dragData.currentId) as HTMLElement
           const constraint:Number = Number.parseInt(a.getAttribute("data-constraint") as string)
           
-          ed.route.forEach((el) => {  // <<<<<<<<<<<<<<<< iterate through route of the edge
+          ed.route.forEach((el, i) => {  // <<<<<<<<<<<<<<<< iterate through route of the edge
             let pt:Position = structuredClone(ed.route[i])
-            
+            console.log("i:", i, "target:",target, "length: ", ed.route.length)
             if(constraint === EdgeConstraints.Vertical || constraint === EdgeConstraints.None) {
               if(i === target - 1 && ed.route[i].x === ed.route[target].x) {
                 pt.x =  pos.x - bbox.left
@@ -125,41 +283,48 @@ export class EdgeAnchorHandler {
               if(i === target) {
                 pt.x =  pos.x - bbox.left
               }
-              if(i === target + 1  && ed.route[i].x === ed.route[target].x ) {
+              if(i === target + 1 && i < ed.route.length && ed.route[i].x === ed.route[target].x ) {
                 pt.x = pos.x - bbox.left
               }
             }
 
-            if(constraint === EdgeConstraints.Horizontal || constraint === EdgeConstraints.None) {
+            if((constraint === EdgeConstraints.Horizontal) || constraint === EdgeConstraints.None ) {
               if(i === target - 1 && ed.route[i].y === ed.route[target].y) {
                 pt.y =  pos.y - bbox.top
               }
               if(i === target) {
                 pt.y =  pos.y - bbox.top
               }
-              if(i === target + 1  && ed.route[i].y === ed.route[target].y ) {
+              if(i === target + 1 && i < ed.route.length && ed.route[i].y === ed.route[target].y ) {
                 pt.y =  pos.y - bbox.top
               }
             }
-          
+
             if(pt) {
-              p[i] = (pt)
+              r[i] = (pt)
             }
-            i++ 
+            //i++ 
           })
         }
 
-        ed.route = p
-             
+        ed.route = r             
       }
       return ed; 
     })
     
     this.canvasController.setEdges(ea)
+  
   }
 
   dropAnchor = (id:string) => { 
-    this.canvasController.setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } })
+    switch(this.canvasController.mode) {
+      case CanvasMode.MoveEdgeAnchor:
+        this.canvasController.setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
+        break
+      case CanvasMode.MoveEdgeEndAnchor:
+        this.canvasController.setCanvasMode(CanvasMode.Ready)
+    }
+    //this.canvasController.setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } })
   }
 }
 
@@ -176,13 +341,13 @@ export class EdgeHandleHandler {
     if (!key ) {
       const el =document.getElementById(id)
       const bbox = el?.getBoundingClientRect() as DOMRect
-      this.canvasController.setMode(CanvasMode.MoveEdgeHandle)
+      this.canvasController.setCanvasMode(CanvasMode.MoveEdgeHandle, id.split(":")[0])
       this.canvasController.select('edgeHandle', id as string,  { x: pos.x - bbox?.left, y: pos.y - bbox.top }, { x: pos.x, y: pos.y })
     }
   }
 
   moveHandlePosition = (pos:Position, bbox:DOMRect) => {
-    const eid = this.canvasController.dragData.currentId.split(":")[0]
+    const eid = this.canvasController.dragData.currentId.split(":")[0] 
     const hid = this.canvasController.dragData.currentId.split(":")[1]
 
     const p:Position = {x: pos.x - bbox.left, y: pos.y - bbox.top}
@@ -190,7 +355,7 @@ export class EdgeHandleHandler {
     if(eid && hid)  {
       let c = document.getElementById(eid + ":" + hid + ":C")
       let l = document.getElementById(eid + ":" + hid + ":L")
-      let ed = document.getElementById(eid)
+      let ed = document.getElementById(eid + ":edge")
       let edbg = document.getElementById(eid + ":bg")
       c?.setAttribute('cx',  ("" + (pos.x- bbox.left))) 
       c?.setAttribute('cy',  ("" + (pos.y - bbox.top)))    
@@ -250,7 +415,7 @@ export class EdgeHandleHandler {
   moveHandle = (id:string) => {
     if (this.canvasController.mode === CanvasMode.MoveEdgeHandle) {
       const el = document.getElementById(id)
-      const eid = id.split(":")[0]
+      const eid = id.split(":")[0] + ":edge"
       const hid = id.split(":")[1]
 
       if (eid && hid) {
@@ -260,7 +425,7 @@ export class EdgeHandleHandler {
   }
 
   endMoveHandle = () => {
-    this.canvasController.setMode(CanvasMode.Ready)
+    this.canvasController.setCanvasMode(CanvasMode.Ready)
     this.canvasController.setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } })
   }
 }

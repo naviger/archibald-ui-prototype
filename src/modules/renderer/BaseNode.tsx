@@ -21,21 +21,6 @@ export class BaseNode {
   params: NodeParameters 
   layer:ArchimateLayer = ArchimateLayer.Technology
   addAnchorPos:Position ={x:-1, y:-1}
-  
-  setTop = () => {
-    var el = document.getElementById(this.display.nodeData.nodeId)
-    if(el) {
-      el.style.zIndex="999"
-      if(el.parentElement){ el.parentElement.appendChild(el)};
-    }
-  }
-
-  removeTop = () => {
-    var el = document.getElementById( this.display.nodeData.nodeId)
-    if(el) {
-      if(el.parentElement){ el.parentElement.insertBefore(el, el.parentElement.children[this.params.index])};
-    }
-  }
 
   setAddAnchorPosition(pos:Position) {
     this.addAnchorPos = pos;
@@ -67,44 +52,7 @@ export class BaseNode {
     return el?.getAttribute("data-hover") === "true"? true : false 
   }
 
-  Render():React.JSX.Element {
-
-    let family:NodeFamily = NodeFamily.ActiveStructureElement;
-
-    if(this.display) {
-      family = this.display.nodeData.family
-    }
-
-    let addAnchor = undefined
-
-    if(this.display.status === NodeStatus.AddAnchor && !this.isAnchorHover()) {
-      addAnchor = this.renderAddAnchor(this.display.position);
-    }
-
-    let c:string = "node "
-    switch(this.display.status) {
-      case NodeStatus.Ready:
-        c += "node-ready"
-        break
-      case NodeStatus.Locked:
-        c += "node-locked"
-        break
-      case NodeStatus.Moving:
-        c+= "node-moving"
-        break
-      case NodeStatus.AddAnchor:
-        c += "node-add-anchor"
-        break
-    }
-
-    return (
-      <g id={this.display.id} key={this.display.nodeData.nodeId} data-node-id={this.display.nodeData.nodeId} onClick={this.nodeClick} onMouseDown={this.nodeDown} onMouseMove={this.nodeMove} onMouseUp={this.nodeUp} onMouseEnter={this.nodeEnter} onMouseLeave={this.nodeLeave} className={c}>
-        { this.renderFrame(family, this.layer) }
-        { addAnchor}
-      </g>
-    )
-  }
-
+  
   nodeEnter:MouseEventHandler<SVGGElement> = (e) => {
     this.params.setHover(e.currentTarget.id)
   }
@@ -124,7 +72,7 @@ export class BaseNode {
     if(e.altKey) {
       this.params.addAnchor(e.currentTarget.id, this.addAnchorPos)
     } else if(this.display.status === NodeStatus.Ready) {
-      this.setTop()
+      //this.setTop()
       this.params.startMove(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY })
     }
   }
@@ -142,7 +90,6 @@ export class BaseNode {
       this.clearAddAnchor()
       this.params.setReady(e)
     } else  if(this.display.status === NodeStatus.AddAnchor ){
-      
       let svg:SVGSVGElement = document.querySelector("svg") as SVGSVGElement
       const bbox = svg.getBoundingClientRect()
       let pt:Position = { x:e.clientX - bbox.left, y:e.clientY - bbox.top}
@@ -167,12 +114,15 @@ export class BaseNode {
    
       let pos:Position = { x: pt.x, y: pt.y}
       this.setAddAnchorPosition(pos)
-    } 
+    } else if(this.display.status === NodeStatus.Ready) {
+      let el:Element = document.getElementById("canvas") as Element
+      let bbox:DOMRect = el.getBoundingClientRect()
+      this.params.move( {x:e.pageX, y:e.pageY}, bbox)
+    }
   }
 
   nodeUp:MouseEventHandler<SVGGElement> = (e) => {
     this.params.endMove(e.currentTarget.id)
-    this.removeTop()
   }
 
   renderIcon(pos:Position):JSX.Element {
@@ -278,7 +228,7 @@ export class BaseNode {
         p+= " Q" + (this.display.position.x) + ", " + (this.display.position.y) + " " + (this.display.position.x + 10) + ", " + (this.display.position.y)
         return (
           <g key={this.display.id}>
-            <path  id={"n:" + this.display.id} d={p} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"/>
+            <path  id={"n:" + this.display.id} className="node" d={p} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"/>
             <foreignObject x={this.display?.position.x + 10} y={this.display?.position.y + 5} width="130" height="50">
               <p className="nodeName" >{this.display?.nodeData.name}</p>
             </foreignObject>
@@ -299,7 +249,7 @@ export class BaseNode {
         p3+= " l10 -10"
         return (
           <g key={this.display.id} >
-            <path id={"n:" + this.display.id} d={p3} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"  />
+            <path id={"n:" + this.display.id} className="node" d={p3} fill={cbg} stroke="grey" data-node-id={this.display.nodeData.nodeId} data-element="frame"  />
             <foreignObject x={this.display?.position.x + 10} y={this.display?.position.y + 5} width="130" height="50">
               <p className="nodeName" >{this.display?.nodeData.name}</p>
             </foreignObject>
@@ -309,4 +259,43 @@ export class BaseNode {
         )
     }
   }
+
+  Render():React.JSX.Element {
+
+    let family:NodeFamily = NodeFamily.ActiveStructureElement;
+
+    if(this.display) {
+      family = this.display.nodeData.family
+    }
+
+    let addAnchor = undefined
+
+    if(this.display.status === NodeStatus.AddAnchor && !this.isAnchorHover()) {
+      addAnchor = this.renderAddAnchor(this.display.position);
+    }
+
+    let c:string = "node node-ptr"
+    switch(this.display.status) {
+      case NodeStatus.Ready:
+        c += " node-ready"
+        break
+      case NodeStatus.Locked:
+        c += " node-locked"
+        break
+      case NodeStatus.Moving:
+        c+= " node-moving"
+        break
+      case NodeStatus.AddAnchor:
+        c += " node-add-anchor"
+        break
+    }
+
+    return (
+      <g id={this.display.id} key={this.display.nodeData.nodeId} data-node-id={this.display.nodeData.nodeId} onClick={this.nodeClick} onMouseDown={this.nodeDown} onMouseMove={this.nodeMove} onMouseUp={this.nodeUp} onMouseEnter={this.nodeEnter} onMouseLeave={this.nodeLeave} className={c}>
+        { this.renderFrame(family, this.layer) }
+        { addAnchor}
+      </g>
+    )
+  }
+
 }

@@ -60,7 +60,7 @@ import { DragData } from "../structure/DragData"
 import { EdgeParameters } from "../structure/EdgeParameters"
 import { Position } from "../structure/Position"
 import { CanvasMode } from "../enums/enumCanvasMode"
-import { EdgeRelationshipTypes, EdgeRelationships } from "../enums/enumEdgeRelationships"
+import {  EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { DefaultValues } from "../structure/DefaultValues"
 import { EdgePropertyBox, EdgePropertyBoxProps } from "./EdgePropertyBox"
@@ -116,7 +116,7 @@ export const Canvas = (props:CanvasProps) => {
   if(props.modelData) { jd = props.modelData.junctions}
   const [junctions, setJunctions] = useState(jd)
 
-  let edd:EdgeDisplayInstance = { id:"temp", edgeData: { edgeId:'temp', name:'temp', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
+  let edd:EdgeDisplayInstance = { id:"temp-edge", edgeData: { edgeId:'temp-edge', name:'temp-edge', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp-edge'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
   const [newEdge, setNewEdge] = useState<EdgeDisplayInstance>(edd)
 
   const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, setSelected)
@@ -134,48 +134,52 @@ export const Canvas = (props:CanvasProps) => {
     pos.x = e.clientX
     pos.y = e.clientY
     const bbox = e.currentTarget.getBoundingClientRect()
-    if(e.shiftKey && mode === CanvasMode.AddEdge) {
-      edgeHandler.addEdge(pos, bbox)
-    } else if(mode===CanvasMode.MoveJunction) {
+
+    if(mode === CanvasMode.MoveNode) {
+      nodeHandler.inMove(dragData.currentId, e.shiftKey, {x:e.pageX, y:e.pageY} )
+    } else if(e.shiftKey && mode === CanvasMode.AddEdge) {
+      edgeHandler.moveAddEdge(pos, bbox)
+    } else if (mode === CanvasMode.MoveEdgeEndAnchor) {
+      // pos.x = e.pageX - dragData.offset.x
+      // pos.y = e.pageY - dragData.offset.y
+      edgeHandler.moveEdgeEndPoint(pos, bbox)
+    } else if(mode === CanvasMode.MoveJunction) {
       pos.x = e.pageX 
       pos.y = e.pageY 
       junctionHandler.move(dragData.currentId,  pos)
-    } else if(mode===CanvasMode.MoveEdgeAnchor) {
+    } else if(mode === CanvasMode.MoveEdgeAnchor) {
       pos.x = e.pageX - dragData.offset.x
       pos.y = e.pageY - dragData.offset.y
       edgeAnchorHandler.moveAnchor(pos, bbox)
     } else if(mode===CanvasMode.MoveEdgeHandle) {
       edgeHandleHandler.moveHandlePosition(pos, bbox)
     } else if(mode===CanvasMode.MovePropertyBox) {
-      if(e && (e.target instanceof Element) && (e.currentTarget) && e.button === 0){
-        let box:HTMLElement = document.getElementById("edge-property-box") as HTMLElement
-        if(box) {
-          box.setAttribute("style", "left: " + (e.clientX - bbox.left) + "px; top: " + (e.clientY - bbox.top) + "px;")
-        } 
-      }
+      edgePropertyBoxHandler.move("edge-property-box", {x:e.pageX - bbox.left, y:e.pageY - bbox.top})
     }
   }
 
   let backgroundMouseUp = (e:React.MouseEvent<SVGElement>) => {
-    if(mode===CanvasMode.MoveEdgeAnchor || mode === CanvasMode.MoveEdgeHandle) {
-      setMode(CanvasMode.Ready)
-      canvasController.clearPointerEvents()
+    console.log("canvas mouse up")
+    if(mode===CanvasMode.MoveEdgeAnchor  || mode === CanvasMode.MoveEdgeHandle) {
+      canvasController.setCanvasMode(CanvasMode.Ready)
+      //canvasController.clearPointerEvents()
       setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
       canvasController.clearSelect()
-    } else if(mode === CanvasMode.AddEdge) {
-      setMode(CanvasMode.Ready)
+    } else if(mode === CanvasMode.AddEdge || mode === CanvasMode.MoveEdgeEndAnchor) {
+      canvasController.setCanvasMode(CanvasMode.Ready)
       setNewEdge(edd)
     } else {
+      canvasController.setCanvasMode(CanvasMode.Ready)
       setSelected("")
     }
   }
 
   let np:NodeParameters = {
-    canvasMode:mode,
     setHover: nodeHandler.setHover,
     clearHover: nodeHandler.clearHover,
     setSelected: nodeHandler.setSelected,
     startMove: nodeHandler.startMove,
+    move: nodeHandler.move,
     inMove: nodeHandler.inMove,
     endMove: nodeHandler.endMove,
     addAnchor: nodeHandler.addAnchor,
@@ -482,6 +486,7 @@ export const Canvas = (props:CanvasProps) => {
           dragDone: edgePropertyBoxHandler.dragDone,
           setEdgeLayout: edgePropertyBoxHandler.setEdgeLayout,
           setEdgeType: edgePropertyBoxHandler.setEdgeType,
+          move: edgePropertyBoxHandler.move,
           remove: edgePropertyBoxHandler.remove,
           position:{x:curEdge?.route[0].x + 30, y:curEdge.route[0].y + 30 }
         }
@@ -502,8 +507,9 @@ export const Canvas = (props:CanvasProps) => {
       <rect x="0" y="0" width={cvsW} height={cvsH} fill="#efffff" onClick={canvasController.clearSelect} onMouseMove={backgroundMove} onMouseUp={backgroundMouseUp}/>
       { els }
       { newEdgeEl }
+      <span id="top"></span>
     </svg>
     { propertyBox }
-    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) }</span>
+    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + canvasController.currentId}</span>
   </div>
 }

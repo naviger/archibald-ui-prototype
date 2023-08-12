@@ -7,4 +7,4 @@ export type DragData = {
   offset: Position
   position:Position
   data?:Array<EdgeAnchor> | Position
-}
+} 

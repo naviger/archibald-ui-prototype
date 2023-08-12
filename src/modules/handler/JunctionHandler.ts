@@ -2,6 +2,7 @@ import { AnchorStatus } from "../enums/enumAnchorStatus"
 import { CanvasMode } from "../enums/enumCanvasMode"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { FlowDirection } from "../enums/enumFlowDirection"
+import { Anchorable } from "../structure/Anchorable"
 import { EdgeDisplayInstance } from "../structure/Edge"
 import { JunctionDisplayInstance } from "../structure/Junction"
 import { JunctionAnchorData } from "../structure/JunctionAnchorData"
@@ -52,10 +53,10 @@ export class JunctionHandler {
 
     this.canvasController.setJunctions(ja)
     this.canvasController.setDragData({type:"junction", currentId:id, offset: offset, position: pos})
-    this.canvasController.setMode(CanvasMode.MoveJunction)
+    this.canvasController.setCanvasMode(CanvasMode.MoveJunction, id)
+    console.log("JID: ", id)
     this.canvasController.setSelected("junction:" + id)
   }
-
 
   move = (id: string, pos:Position) => {
     if( this.canvasController.mode === CanvasMode.MoveJunction) {
@@ -117,7 +118,7 @@ export class JunctionHandler {
 
   drop = () => {
     this.canvasController.setDragData({type:"none", currentId:'', offset: { x: -1, y: -1}, position: { x: -1, y: -1}})
-    this.canvasController.setMode(CanvasMode.Ready)
+    this.canvasController.setCanvasMode(CanvasMode.Ready)
   }
 
   startNewEdge = (id:string, key:boolean) => {
@@ -134,7 +135,7 @@ export class JunctionHandler {
         ned.edgeData.sourceObject = jid
         ned.sourceAnchor=aid
         ned.route=[{x:j.position.x + aa.position.x , y:j.position.y + aa.position.y}, {x:j.position.x + aa.position.x, y:j.position.y + aa.position.y}]
-        this.canvasController.setMode(CanvasMode.AddEdge)
+        this.canvasController.setCanvasMode(CanvasMode.AddEdge, id)
         this.canvasController.setNewEdge(ned)
       }
     }
@@ -142,7 +143,95 @@ export class JunctionHandler {
 
   endNewEdge = (id:String) => {
     
-    if(this.canvasController.mode === CanvasMode.AddEdge) {
+    if(this.canvasController.mode === CanvasMode.MoveEdgeEndAnchor) {
+      let e = structuredClone(this.canvasController.edges.find((e) => {return e.id === this.canvasController.dragData.currentId.split(":")[0]})) as EdgeDisplayInstance
+      let el = document.getElementById(this.canvasController.dragData.currentId.split(":")[0] + ":edge")
+      el?.setAttribute("stroke-opacity", "1")
+      let el2 = document.getElementById("temp-edge:edge")
+      el2?.setAttribute("points", "-1,-1 -1,-1")
+      //console.log("EL2:", el2)
+      let eaid:number = Number.parseInt(this.canvasController.dragData.currentId.split(":")[1])
+      let a = structuredClone(this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, id.split(":")[0]))
+      let aa = a?.anchors.find((a:Anchorable) => { return a.id === id.split(":")[1]})
+      let oldNObj:string = ""
+      let oldNA:string = ""
+      //console.log("END END MOVE: ", id, ", ", eaid, " | ", this.canvasController.dragData.currentId, e.anchors)
+      
+      if(e && a && aa) {
+        switch(e.style.layout) {
+          case EdgeLayout.Straight:
+            if(eaid === 0) {
+              oldNObj = e.edgeData.destinationObject
+              oldNA = e.destinationAnchor
+              e.route[0] = {x: a.position.x + aa.position.x, y: a.position.y + aa.position.y } 
+              e.sourceAnchor = aa.id
+              e.edgeData.sourceObject = a.id
+            } else {
+              oldNObj = e.edgeData.sourceObject
+              oldNA = e.sourceAnchor
+              e.route[1] = {x: a.position.x + aa.position.x, y: a.position.y + aa.position.y }
+              e.destinationAnchor = aa.id
+              e.edgeData.destinationObject = a.id
+            }  
+            break
+          case EdgeLayout.Bezier:
+            let ea:string = this.canvasController.dragData.currentId.split(":")[1]
+            //let d:string[] = el2?.getAttribute("data-d")?.split(" ")
+            if(ea === "S") {
+              oldNObj = e.edgeData.destinationObject
+              oldNA = e.destinationAnchor
+              let dx = e.route[0].x - e.route[1].x
+              let dy = e.route[0].y - e.route[1].y
+              e.route[0] = {x: a.position.x + aa.position.x, y: a.position.y + aa.position.y } 
+              e.route[1] = {x:e.route[0].x - dx, y: e.route[0].y - dy} 
+              e.sourceAnchor = aa.id
+              e.edgeData.sourceObject = a.id
+            } else {
+              oldNObj = e.edgeData.sourceObject
+              oldNA = e.sourceAnchor
+              let dx = e.route[5].x - e.route[4].x
+              let dy = e.route[5].y - e.route[4].y
+              e.route[5] = {x: a.position.x + aa.position.x, y: a.position.y + aa.position.y }
+              e.route[4] = {x:e.route[5].x - dx, y: e.route[5].y - dy} 
+              e.destinationAnchor = aa.id
+              e.edgeData.destinationObject = a.id
+            }
+            break
+          case EdgeLayout.NinetyDegree:
+          case EdgeLayout.Rounded:
+            
+            if(eaid === 0) {
+              oldNObj = e.edgeData.destinationObject
+              oldNA = e.destinationAnchor
+              let d = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, a.id)
+              e.sourceAnchor = aa.id
+              e.edgeData.sourceObject = a.id
+              let p:Position[] =  this.helpers.getFiveSegmentRoute(a, d, e)
+            } else {
+              oldNObj = e.edgeData.sourceObject
+              oldNA = e.sourceAnchor
+              let s = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, a.id)
+              e.destinationAnchor = aa.id
+              e.edgeData.destinationObject = a.id
+              let p:Position[] =  this.helpers.getFiveSegmentRoute(s, a, e)
+            }
+            break
+        }
+      }
+
+      let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj)
+      a = this.helpers.addEdgeToAnchor(a, aa?.id as string, e.id)
+      oa = this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
+      //console.log("NEW E:", oa, " ==> ", a)
+      
+      this.canvasController.replaceEdge(e)
+      this.canvasController.replaceAnchorable(a)
+      this.canvasController.replaceAnchorable(oa)
+      
+      this.canvasController.clearTempEdge()
+      //this.canvasController.setEdges(ear)
+      this.canvasController.setCanvasMode(CanvasMode.Ready)
+    } else if(this.canvasController.mode === CanvasMode.AddEdge) {
       let ed:EdgeDisplayInstance = structuredClone(this.canvasController.newEdge);
       let hed:EdgeDisplayInstance = structuredClone(this.canvasController.newEdge);
       let jid = id.split(":")[0]
@@ -232,7 +321,7 @@ export class JunctionHandler {
         this.canvasController.setNewEdge(hed)
         this.canvasController.setEdges(ea)
       }
-      this.canvasController.setMode(CanvasMode.Ready)
+      this.canvasController.setCanvasMode(CanvasMode.Ready)
     }
   }
 }

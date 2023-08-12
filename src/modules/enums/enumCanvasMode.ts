@@ -5,6 +5,7 @@ export enum CanvasMode {
   MoveNode,
   MoveJunction,
   MoveEdgeAnchor,
+  MoveEdgeEndAnchor,
   MoveEdgeHandle,
   MovePropertyBox
 }

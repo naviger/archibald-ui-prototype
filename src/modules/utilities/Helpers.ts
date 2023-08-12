@@ -9,6 +9,8 @@ import { layouts } from "../data/layout"
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { DisplayInstance } from "../structure/DisplayInstance";
 import { Anchorable } from "../structure/Anchorable";
+import { NodeAnchorHandler } from "../handler/NodeHandler";
+import { JunctionAnchorData } from "../structure/JunctionAnchorData";
 
 class Helpers {
 
@@ -24,6 +26,28 @@ class Helpers {
     }
     return r
   }
+
+  addEdgeToAnchor = (a:NodeDisplayInstance|JunctionDisplayInstance, aid:string, eid:string) => {
+    a.anchors.forEach((ai:JunctionAnchorData | NodeAnchorData) => {
+      if(ai.id === aid ) {
+        let found:boolean = false
+        ai.edges.forEach((ei:string) => {if(ei === eid) { found = true}})
+        if(!found)ai.edges.push(eid)
+      }
+    })
+    return a
+  }
+
+  removeEdgeToAnchor = (a:NodeDisplayInstance|JunctionDisplayInstance, aid:string, eid:string) => {
+    a.anchors.forEach((ai:JunctionAnchorData | NodeAnchorData) => {
+      if(ai.id === aid ) {
+        ai.edges.forEach((ei:string, i:number) => {if(ei === eid) { ai.edges.splice(i,1)}})
+      }
+    })
+    return a
+  }
+
+  
 
   GetStyle = (tgt:string, style:string):string => {
     var el:Element|null = document.getElementById(tgt)
@@ -384,15 +408,17 @@ class Helpers {
   }
 
   getFiveSegmentRoute = (sn:NodeDisplayInstance|JunctionDisplayInstance, dn: NodeDisplayInstance|JunctionDisplayInstance, e:EdgeDisplayInstance) => {
-    const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
-    const da: NodeAnchorData = dn.anchors.find((a)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
+    const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
+    const da: NodeAnchorData = dn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
+    console.log(sn, sa, e.sourceAnchor, dn, da, e.destinationAnchor)
     const ss1:EdgeSide = this.getSide(sn, sa.id)
     const ds1:EdgeSide = this.getSide(dn, da.id)
     const lt:string = this.getLayout(ss1, ds1)
     const n = this.getRelativePosition(sn, dn, 10)
     const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
     const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
-    
+    console.log("LAYOUT: ", k, s)
+
     let p:Position[] = []
     let d:string[] = s.split(":")
     let spCalc:string[] = d[3].split(",")

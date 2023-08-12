@@ -1,8 +1,8 @@
 import { JunctionType } from "../enums/enumJunctionType"
-import { IAnchorable } from "../interface/anchorable"
+//import { IAnchorable } from "../interface/anchorable"
 import { DisplayInstance } from "./DisplayInstance"
-import { JunctionAnchorData } from "./JunctionAnchorData"
-import { Position } from "./Position"
+// import { JunctionAnchorData } from "./JunctionAnchorData"
+// import { Position } from "./Position"
 
 export class JunctionDisplayInstance  extends DisplayInstance {
   type:JunctionType = JunctionType.And

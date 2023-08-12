@@ -95,22 +95,21 @@ export class BaseEdge {
         let e:Position = this.display.route[1] as Position
     
         if(this.display.isSelected) {
-          anchors.push(new EdgeAnchor(this.display.id + ":1", s, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.Horizontal && EdgeConstraints.Vertical).render())
-          anchors.push(new EdgeAnchor(this.display.id + ":2", e, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.Horizontal && EdgeConstraints.Vertical).render())
+          anchors.push(new EdgeAnchor(this.display.id + ":0", s, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None && EdgeConstraints.EndAnchor).render())
+          anchors.push(new EdgeAnchor(this.display.id + ":1", e, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None && EdgeConstraints.EndAnchor).render())
         }
         p = "" + s.x + ", " + s.y + " " + e.x + ", " + e.y
         let theta:number = helpers.getStraightAngle(s, e)
-        start = getStartDecoration(this.display.edgeData.type, s, e, theta, styles)
-        end = getEndDecoration(this.display.edgeData.type, e, e, theta, styles)
-        
+        start = getStartDecoration(this.display.id, this.display.edgeData.type, s, e, theta, styles)
+        end = getEndDecoration(this.display.id, this.display.edgeData.type, e, e, theta, styles)
+        //console.log("LINE: n", this.display.id, p)
         return (
-          <g key={this.display.id}  >
-            <polyline id={this.display.id + ":bg"} points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' strokeWidth="10" strokeOpacity="0.1" strokeDasharray={this.strokeStyle} stroke={this.strokeColor} fill="none" onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
-            <polyline id={this.display.id} points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' width={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} fill="none" className='display-edge' />
-            <circle cx={e.x} cy={e.y} r="2" fill="red" />
-            { anchors }
+          <g key={this.display.id} id={this.display.id} >
+            <polyline id={this.display.id + ":bg"} className="edge-ptr" points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' strokeWidth="10" strokeOpacity="0.1" strokeDasharray={this.strokeStyle} stroke={this.strokeColor} fill="none" onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
+            <polyline id={this.display.id + ":edge"} className="edge display-edge" points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' width={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} fill="none" />
             { start }
             { end }
+            { anchors }
           </g>
         )
         break
@@ -119,23 +118,37 @@ export class BaseEdge {
         this.display.route.forEach((pt:Position) => {    
           if(this.display.isSelected && (i >= 0) && (i < this.display.route.length)) {
             if(i === 0) {
-              let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None)
+              let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.EndAnchor)
               anchors.push(ea0.render())
             } else {
               let status = EdgeAnchorStatus.Free
-              if(i === this.display.route.length -1) {status = EdgeAnchorStatus.Locked}
+              let constraints:EdgeConstraints|undefined = undefined
+              if(i === this.display.route.length -1) {
+                status = EdgeAnchorStatus.Locked
+                constraints = EdgeConstraints.EndAnchor
+              }
               
               if(ptprev.x === pt.x ) { 
+                if(constraints!=undefined) {
+                  constraints =  constraints | (i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None)
+                } else {
+                  constraints =  i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None
+                }
                 let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
-                i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None)
+                constraints )
 
                 let ea2:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ ((i-1) + .5), {x: pt.x, y:(ptprev.y + pt.y)/2}, this.params.anchorParams, EdgeAnchorStatus.Free, i === 1 || i === this.display.route.length -1 ? EdgeConstraints.Horizontal | EdgeConstraints.Vertical : EdgeConstraints.Vertical)
 
                 anchors.push(ea2.render())
                 anchors.push(ea1.render())
               } else if(ptprev.x != pt.x ) {  
-                let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
-                  i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None)
+                if(constraints!=undefined) {
+                  constraints =  constraints | (i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None)
+                } else {
+                  constraints =   i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None
+                }
+
+                let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, constraints)
 
                 let ea2:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ ((i-1) + .5), { x:(ptprev.x + pt.x)/2, y: pt.y}, this.params.anchorParams, EdgeAnchorStatus.Free, i === 1 || i === this.display.route.length -1 ? EdgeConstraints.Horizontal | EdgeConstraints.Vertical : EdgeConstraints.Horizontal)
 
@@ -155,10 +168,10 @@ export class BaseEdge {
         }
 
         let thetaStart = helpers.getOrthagonalAngle(this.display.route[0], this.display.route[1])
-        start = getStartDecoration(this.display.edgeData.type, this.display.route[0], this.display.route[1], thetaStart, styles)
+        start = getStartDecoration(this.display.id, this.display.edgeData.type, this.display.route[0], this.display.route[1], thetaStart, styles)
 
         let thetaEnd = helpers.getStraightAngle(this.display.route[this.display.route.length-2], this.display.route[this.display.route.length-1])
-        end = getEndDecoration(this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], thetaEnd, styles)
+        end = getEndDecoration(this.display.id, this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], thetaEnd, styles)
 
         let as:JSX.Element[] = []
         
@@ -167,14 +180,14 @@ export class BaseEdge {
         })
 
         return (
-          <g key={this.display.id}>
+          <g key={this.display.id} id={this.display.id}>
    
-            <polyline id={this.display.id + ":bg"} points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10" strokeOpacity="0.1" strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} onMouseDown={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
+            <polyline id={this.display.id + ":bg"} className="edge-ptr" points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10" strokeOpacity="0.1" strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} onMouseDown={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
             
-            <polyline id={this.display.id} points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" width={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} className='display-edge' />
-            { as }
+            <polyline id={this.display.id + ":edge"} className='edge display-edge' points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" width={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor}  />
             { start }
             { end }
+            { as }
           </g>
         )
         break
@@ -183,21 +196,37 @@ export class BaseEdge {
         this.display.route.forEach((pt:Position) => {
           if(this.display.isSelected && (i >= 0) && (i < this.display.route.length)) {
             if(i === 0) {
-              let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None)
+              let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.EndAnchor | EdgeConstraints.None)
               anchors.push(ea0.render())
             } else {
               let status = EdgeAnchorStatus.Free
+              let constraints:EdgeConstraints|undefined = undefined
+              if(i === this.display.route.length -1) {
+                status = EdgeAnchorStatus.Locked
+                constraints = EdgeConstraints.EndAnchor
+              }
               if(i === this.display.route.length -1) {status = EdgeAnchorStatus.Locked}
               
-              if(ptprev.x === pt.x ) { 
+              if(ptprev.x === pt.x ) {
+                if(constraints!=undefined) {
+                  constraints =  constraints | (i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None)
+                } else {
+                  constraints =  i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None
+                }
+
                 let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
-                i === 1 ? EdgeConstraints.Horizontal: i === this.display.route.length - 2 ? EdgeConstraints.Vertical : EdgeConstraints.None)
+                constraints)
 
                 let ea2:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ ((i-1) + .5), {x: pt.x, y:(ptprev.y + pt.y)/2}, this.params.anchorParams, EdgeAnchorStatus.Free, i === 1 || i === this.display.route.length -1 ? EdgeConstraints.Horizontal | EdgeConstraints.Vertical : EdgeConstraints.Vertical)
 
                 anchors.push(ea2.render())
                 anchors.push(ea1.render())
               } else if(ptprev.x != pt.x ) {  
+                if(constraints!=undefined) {
+                  constraints =  constraints | (i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None)
+                } else {
+                  constraints =   i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None
+                }
                 let ea1:EdgeAnchor = new EdgeAnchor(this.display.id + ":"+ i, {x: pt.x, y:pt.y}, this.params.anchorParams, status, 
                   i === 1  ? EdgeConstraints.Vertical: i === this.display.route.length - 2 ? EdgeConstraints.Horizontal : EdgeConstraints.None)
 
@@ -250,39 +279,38 @@ export class BaseEdge {
                 break
             }
           } else {
-            p +=  "L " + pt.x + "," +pt.y + " "
+            p +=  " L " + pt.x + "," +pt.y + " "
           }
           ptprev = pt
           i++
         })
 
         if(!this.display.isSelected) {
-
           anchors = [];
         }
 
         let theta2Start = helpers.getOrthagonalAngle(this.display.route[0], this.display.route[1])
-        start = getStartDecoration(this.display.edgeData.type, this.display.route[0], this.display.route[1], theta2Start, styles)
+        start = getStartDecoration(this.display.id, this.display.edgeData.type, this.display.route[0], this.display.route[1], theta2Start, styles)
 
         let theta2End = helpers.getStraightAngle(this.display.route[this.display.route.length-2], this.display.route[this.display.route.length-1])
-        end = getEndDecoration(this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], theta2End, styles)
+        end = getEndDecoration(this.display.id, this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], theta2End, styles)
 
         return (
-          <g key={this.display.id}>
-            <path id={this.display.id + ":bg"} d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10" strokeOpacity="0.1" stroke={styles.strokeColor} onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
-            <path id={this.display.id} d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} className='display-edge' />
+          <g key={this.display.id} id={this.display.id}>
+            <path id={this.display.id + ":bg"} className="edge-ptr" d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10" strokeOpacity="0.1" stroke={styles.strokeColor} onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
+            <path id={this.display.id + ":edge"}  className='edge display-edge' d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} />
             { start }
             { end }
-          { anchors }
-        </g>
+            { anchors }
+          </g>
         )
         break
       case EdgeLayout.Bezier:
         let theta3Start = helpers.getStraightAngle(this.display.route[0], this.display.route[1])
-        start = getStartDecoration(this.display.edgeData.type, this.display.route[0], this.display.route[1], theta3Start, styles)
+        start = getStartDecoration(this.display.id, this.display.edgeData.type, this.display.route[0], this.display.route[1], theta3Start, styles)
 
         let theta3End = helpers.getStraightAngle(this.display.route[this.display.route.length-2], this.display.route[this.display.route.length-1])
-        end = getEndDecoration(this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], theta3End, styles)
+        end = getEndDecoration(this.display.id, this.display.edgeData.type, this.display.route[this.display.route.length-1], this.display.route[this.display.route.length-2], theta3End, styles)
 
         p = "M " + (this.display.route[0].x) + "," + (this.display.route[0].y) + " "
         p+= "C " + (this.display.route[1].x) + "," + (this.display.route[1].y) + " " + (this.display.route[2].x) + "," + (this.display.route[2].y) + " "  + (this.display.route[3].x) + "," + (this.display.route[3].y) + " "
@@ -292,9 +320,9 @@ export class BaseEdge {
         // M 1340,1100 C 1340,1200 1240,1230 1270,1200 S 1100,1250 1140,1300 
         // 0 1         2 3         4         5         6 7         8
         //   0           1         2         3           4         5
-        anchors.push(new EdgeAnchor(this.display.id + ":S", this.display.route[0], this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None).render())
+        anchors.push(new EdgeAnchor(this.display.id + ":S", this.display.route[0], this.params.anchorParams, EdgeAnchorStatus.Locked, (EdgeConstraints.None | EdgeConstraints.EndAnchor)).render())
         anchors.push(new EdgeAnchor(this.display.id + ":M"+ i, this.display.route[3], this.params.anchorParams, EdgeAnchorStatus.Free, EdgeConstraints.None).render())
-        anchors.push(new EdgeAnchor(this.display.id + ":E"+ i, this.display.route[5], this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.None).render())
+        anchors.push(new EdgeAnchor(this.display.id + ":E"+ i, this.display.route[5], this.params.anchorParams, EdgeAnchorStatus.Locked, (EdgeConstraints.None | EdgeConstraints.EndAnchor)).render())
            
         let HC2I:Position = helpers.getInverse(this.display.route[2], this.display.route[3])
 
@@ -309,13 +337,13 @@ export class BaseEdge {
         }
 
         return (
-          <g key={this.display.id}>
-            <path id={this.display.id + ":bg"} d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10"  strokeOpacity="0.1" stroke={styles.strokeColor} onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
-            <path id={this.display.id} d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' className='display-edge' fill="none" strokeWidth={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} />
+          <g key={this.display.id} id={this.display.id} >
+            <path id={this.display.id + ":bg"} className="edge-ptr" d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' fill="none" strokeWidth="10"  strokeOpacity="0.1" stroke={styles.strokeColor} onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
+            <path id={this.display.id + ":edge"}  className='edge display-edge' d={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector'  fill="none" strokeWidth={styles.strokeSize} strokeDasharray={styles.strokeStyle} stroke={styles.strokeColor} />
             { start }
             { end }
-            { anchors }
             { handles }
+            { anchors }
           </g>
         )
         break

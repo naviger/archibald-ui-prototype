@@ -18,6 +18,7 @@ export type EdgePropertyBoxProps = {
   dragDone:Function
   setEdgeLayout:Function
   setEdgeType:Function
+  move:Function
   remove:Function
   position:Position
   dataRenderer:Function
@@ -69,6 +70,11 @@ const flyoutClose = <svg width="10">
     setInDrag(true)
   }
 
+  const onMove:MouseEventHandler<HTMLElement> = (e) => {
+    let bbox:DOMRect = document.getElementById("canvas")?.getBoundingClientRect() as DOMRect
+    props.move(e.currentTarget.id, {x:e.pageX - bbox.left, y:e.pageY - bbox.top})
+  }
+
   const onDragHandleMouseUp:MouseEventHandler<SVGSVGElement> = (e) => {
     props.dragDone(props.id, e.shiftKey)
     setInDrag(false)
@@ -104,8 +110,8 @@ const flyoutClose = <svg width="10">
       id:"ls1:" + EdgeRelationships.Composition,
       value: "Composition",
       data: {
-        start: getStartDecoration(EdgeRelationships.Composition, {x:25,y:10}, {x:5, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Composition, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ls1:dds", EdgeRelationships.Composition, {x:25,y:10}, {x:5, y:10}, 0, styles()),
+        end: getEndDecoration("ls1:dde", EdgeRelationships.Composition, {x:5,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Composition, '')
       },
       isSelected: false,
@@ -115,8 +121,8 @@ const flyoutClose = <svg width="10">
       id:"ls2:" + EdgeRelationships.Aggregation,
       value: "Aggregation",
       data: {
-        start: getStartDecoration(EdgeRelationships.Aggregation, {x:25,y:10}, {x:35, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Aggregation, {x:10,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ls2:dds", EdgeRelationships.Aggregation, {x:25,y:10}, {x:35, y:10}, 0, styles()),
+        end: getEndDecoration("ls2:dde", EdgeRelationships.Aggregation, {x:10,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Aggregation, '')
       },
       isSelected: false,
@@ -126,8 +132,8 @@ const flyoutClose = <svg width="10">
       id:"ls3:" + EdgeRelationships.Assignment,
       value: "Assignment",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Assignment, {x:10,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Assignment, {x:35,y:10}, {x:5, y:10}, 0, styles()),
+        start: getStartDecoration("ls3:dds", EdgeRelationships.Assignment, {x:10,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ls3:dde", EdgeRelationships.Assignment, {x:35,y:10}, {x:5, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Assignment, '')
       },
       isSelected: false,
@@ -137,8 +143,8 @@ const flyoutClose = <svg width="10">
       id:"ls4:" + EdgeRelationships.Realization,
       value: "Realization",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Realization, {x:30,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Realization, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ls4:dds", EdgeRelationships.Realization, {x:30,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ls4:dde", EdgeRelationships.Realization, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Realization, '')
       },
       isSelected: false,
@@ -155,8 +161,8 @@ const flyoutClose = <svg width="10">
       id:"ld1:" + EdgeRelationships.Serving,
       value: "Serving",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Serving, {x:5,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Serving, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ld1:dds", EdgeRelationships.Serving, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ld1:dde", EdgeRelationships.Serving, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Serving, '')
       },
       isSelected: false,
@@ -166,8 +172,8 @@ const flyoutClose = <svg width="10">
       id:"ld2:" + EdgeRelationships.Access,
       value: "Access",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Access, {x:5,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Access, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ld2:dds", EdgeRelationships.Access, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ld2:dde", EdgeRelationships.Access, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Access, '')
       },
       isSelected: false,
@@ -177,8 +183,8 @@ const flyoutClose = <svg width="10">
       id:"ld3:" + EdgeRelationships.Influence,
       value: "Influence",
       data:{        
-        start: getStartDecoration(EdgeRelationships.Influence, {x:5,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Influence, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ld3:dds", EdgeRelationships.Influence, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ld3:dde", EdgeRelationships.Influence, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Influence, '')
       },
       isSelected: false,
@@ -188,8 +194,8 @@ const flyoutClose = <svg width="10">
       id:"ld4:" + EdgeRelationships.Association,
       value: "Association",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Association, {x:5,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Association, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ld4:dds", EdgeRelationships.Association, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ld4:dde", EdgeRelationships.Association, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Association, '')
       },
       isSelected: false,
@@ -206,8 +212,8 @@ const flyoutClose = <svg width="10">
       id:"ly1:" + EdgeRelationships.Triggering,
       value: "Triggering",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Triggering, {x:5,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Triggering, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ly1:dds", EdgeRelationships.Triggering, {x:5,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("ly1:dde", EdgeRelationships.Triggering, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Triggering, '')
       },
       isSelected: false,
@@ -217,8 +223,8 @@ const flyoutClose = <svg width="10">
       id:"ly2:" + EdgeRelationships.Flow,
       value: "Flow",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Flow, {x:5,y:10}, {x:15, y:10}, 20, styles()),
-        end: getEndDecoration(EdgeRelationships.Flow, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("ly2:dds", EdgeRelationships.Flow, {x:5,y:10}, {x:15, y:10}, 20, styles()),
+        end: getEndDecoration("ly2:dde", EdgeRelationships.Flow, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Flow, '')
       },
       isSelected:false,
@@ -235,8 +241,8 @@ const flyoutClose = <svg width="10">
       id:"lo1:" + EdgeRelationships.Specialization,
       value: "Specialization",
       data: {        
-        start: getStartDecoration(EdgeRelationships.Specialization, {x:30,y:10}, {x:15, y:10}, 0, styles()),
-        end: getEndDecoration(EdgeRelationships.Specialization, {x:35,y:10}, {x:15, y:10}, 0, styles()),
+        start: getStartDecoration("lo1:dds", EdgeRelationships.Specialization, {x:30,y:10}, {x:15, y:10}, 0, styles()),
+        end: getEndDecoration("lo1:dde", EdgeRelationships.Specialization, {x:35,y:10}, {x:15, y:10}, 0, styles()),
         lineStyle: helpers.getLineStyle(EdgeRelationships.Specialization, '')
       },
       isSelected: false,
@@ -274,9 +280,9 @@ const flyoutClose = <svg width="10">
   const dragStyle = inDrag ? " no-pointer-events":""
   const data = props.dataRenderer(props.data)
   return (
-    <div id="edge-property-box" className={"property-panel toggle-pointer"+ dragStyle} style={{top:props.position.y, left: props.position.x}} >
-      <div className="box-handle" >
-        <svg className="box-handle-svg" onMouseDown={onDragHandleMouseDown} onMouseUp={onDragHandleMouseUp}>
+    <div id="edge-property-box" className={"property-panel toggle-pointer"+ dragStyle} style={{top:props.position.y, left: props.position.x}} onMouseMove={onMove} >
+      <div className="box-handle" style={{zIndex:"999"}}>
+        <svg className="box-handle-svg" onMouseDown={onDragHandleMouseDown} onMouseUp={onDragHandleMouseUp} height="32" width="12">
           <path d="m 2,9 l 5,-5 l 7,0 l 0,21 l -7,0 l -5, -5 l 0, -11" stroke="darkgrey" fill="lightgrey"/>
           <circle key="c1" cx="10" cy="9" r="1.8" strokeWidth="0" fill="grey"></circle>
           <circle key="c2" cx="10" cy="15" r="1.8" strokeWidth="0" fill="grey"></circle>
@@ -291,7 +297,7 @@ const flyoutClose = <svg width="10">
           <circle key="ci5" cx="5" cy="19" r=".75" strokeWidth="0" fill="lightgrey"></circle>
         </svg>
       </div>
-      <div id="edge-inner-property-panel" className={"inner-property-panel toggle-pointer" + dragStyle}>
+      <div id="edge-inner-property-panel" className={"inner-property-panel toggle-pointer " + dragStyle} style={{zIndex:"998"}}>
         <div className="section-title">{props.data.name}</div>
         <div className="section-horizontal toggle-pointer">
           <Button key="bl1" iconName={"straight"} onClick={onLayoutClick} enabled={true}  />
@@ -301,11 +307,11 @@ const flyoutClose = <svg width="10">
 
           <Button key="br" iconName={"remove"} onClick={props.remove} enabled={true}  />
         </div>
-        <div className="section-horizontal toggle-pointer">
+        <div className="section-horizontal toggle-pointer ">
           <Dropdown onSelect={props.setEdgeType} enabled={true} items={listItems()} listRenderer={listRenderer} selectedItem={reltype} ></Dropdown>
         </div>
       </div>
-      <div className="flyout-handle toggle-pointer" onClick={toggleData}>
+      <div className="flyout-handle toggle-pointer " onClick={toggleData}>
         {showData ? flyoutClose: flyoutOpen}
       </div>
       { showData && data }

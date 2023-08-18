@@ -8,7 +8,6 @@ export class TechnologyCommunicationNetworkNode extends BaseNode {
   renderIcon(pos:Position):JSX.Element {
     let p1:string = "M" + (pos.x +145) + " " + (pos.y + 5)
     p1+= "l-5 5 l5, 5"
-    //p1+= "l-5 5 l5, 5"
     p1+= "m-5 -5"
     p1+= "h 20"
     p1+= "m-5 -5"
@@ -26,7 +25,6 @@ export class TechnologyCommunicationNetworkNode extends BaseNode {
         <circle r="3" cx={pos.x + 160} cy = {pos.y + 25 } fill="black"></circle>
         <circle r="3" cx={pos.x + 145} cy = {pos.y + 25} fill="black"></circle>
         <polyline points={p} fill="none" stroke="black" strokeWidth={1}/>
-        {/* <path fill="white" stroke="grey" strokeWidth="2" d={p1} /> */}
       </g>
     )
   }

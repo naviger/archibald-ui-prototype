@@ -49,15 +49,15 @@ class Helpers {
 
   
 
-  GetStyle = (tgt:string, style:string):string => {
-    var el:Element|null = document.getElementById(tgt)
-    if(el!=null) {
-      var styles:CSSStyleDeclaration = window.getComputedStyle(el)
-      return styles.getPropertyValue(style);
-    } else {
-      return ""
-    }
-  }
+  // GetStyle = (tgt:string, style:string):string => {
+  //   var el:Element|null = document.getElementById(tgt)
+  //   if(el!=null) {
+  //     var styles:CSSStyleDeclaration = window.getComputedStyle(el)
+  //     return styles.getPropertyValue(style);
+  //   } else {
+  //     return ""
+  //   }
+  // }
 
   getAdjustedRoute = (nodes:Array<NodeDisplayInstance>, junctions: Array<JunctionDisplayInstance>, ed:EdgeDisplayInstance, movedNodeId:string):Position[] => {
     var p:Position[] = [];
@@ -66,6 +66,7 @@ class Helpers {
     var nsp:Position = structuredClone(ed.route[0]); 
     var nep:Position = structuredClone(ed.route[ed.route.length-1])
     var startAngle = this.getStraightAngle(ed.route[0], ed.route[1])
+    var endAngle = this.getStraightAngle(ed.route[ed.route.length - 1], ed.route[ed.route.length - 2])
 
     var sn = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
     var en = this.findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject)
@@ -117,6 +118,7 @@ class Helpers {
     if(ed.route.length < 3 && ed.style.layout === EdgeLayout.Straight) {
       p.push(nep)
     } 
+
     else if(ed.style.layout === EdgeLayout.NinetyDegree ||  ed.style.layout === EdgeLayout.Rounded) {
       for(let i:number = 1; i < pts.length-1; i++) {
         let np:Position = pts[i]
@@ -135,10 +137,11 @@ class Helpers {
             np.x = nsp.x
           }
         } else if(i === pts.length - 2) {
-          if(startAngle === 0 || startAngle === 180) {
+          if(endAngle === 0 || endAngle === 180) {
             np.y = nep.y
-          } else if(startAngle === 90 || startAngle === 270) {
+          } else if(endAngle === 90 || endAngle === 270) {
             np.x = nep.x
+          } else {
           }
         }
 
@@ -311,7 +314,8 @@ class Helpers {
               const ss:EdgeSide = this.getSide(sn, ed.sourceAnchor)
               const ds:EdgeSide = this.getSide(dn, ed.destinationAnchor)
               ed.style.layout = targetLayout
-              ed.route = this.getFiveSegmentRoute(sn, dn, ed)
+              let r = this.getFiveSegmentRoute(sn, dn, ed)
+              ed.route = r
             break
           case EdgeLayout.Straight:
             ed.style.layout = targetLayout
@@ -410,15 +414,13 @@ class Helpers {
   getFiveSegmentRoute = (sn:NodeDisplayInstance|JunctionDisplayInstance, dn: NodeDisplayInstance|JunctionDisplayInstance, e:EdgeDisplayInstance) => {
     const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
     const da: NodeAnchorData = dn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
-    console.log(sn, sa, e.sourceAnchor, dn, da, e.destinationAnchor)
     const ss1:EdgeSide = this.getSide(sn, sa.id)
     const ds1:EdgeSide = this.getSide(dn, da.id)
     const lt:string = this.getLayout(ss1, ds1)
     const n = this.getRelativePosition(sn, dn, 10)
     const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
     const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
-    console.log("LAYOUT: ", k, s)
-
+ 
     let p:Position[] = []
     let d:string[] = s.split(":")
     let spCalc:string[] = d[3].split(",")
@@ -436,8 +438,7 @@ class Helpers {
         let x = this.calculate(c[0], sp, sn, dn, sa, da)
         let y = this.calculate(c[1], sp, sn, dn, sa, da)
         p.push({x:x,y:y})
-      } else {
-      }
+      } 
     })
 
     p.push(da.position)
@@ -454,6 +455,7 @@ class Helpers {
   calculate = (formula:string, sp:Position, sn:DisplayInstance, dn:DisplayInstance, sa:NodeAnchorData, da:NodeAnchorData):number => {
     let r = 0;
     let e:Extent = this.getNodeExtents(sn, dn)
+   
     let f:string = formula ? formula : ""
     f = f.replaceAll('s.x', sn.position.x.toString())
     f = f.replaceAll('s.w', sn.size.width.toString())
@@ -473,10 +475,10 @@ class Helpers {
     }
     f = f.replaceAll("da.x", (dn.position.x + da.position.x).toString())
     f = f.replaceAll('da.y', (dn.position.y + da.position.y).toString())
-    f = f.replaceAll('e.tl.t', e.topleft.y.toString() + " - 10 ")
-    f = f.replaceAll('e.tl.l', e.topleft.y.toString() + " - 10 ")
-    f = f.replaceAll("e.br.b", e.bottomright.y.toString() + " + 10 ")
-    f = f.replaceAll('e.br.r', e.bottomright.x.toString() + " + 10 ")
+    f = f.replaceAll('e.tl.t', e.topleft.y.toString() + " - " + this.gap.toString())
+    f = f.replaceAll('e.tl.l', e.topleft.x.toString() + " - " + this.gap.toString())
+    f = f.replaceAll("e.br.b", e.bottomright.y.toString() + " + " + this.gap.toString())
+    f = f.replaceAll('e.br.r', e.bottomright.x.toString() + " + " + this.gap.toString())
     f = f.replaceAll('g', this.gap.toString())
 
     r = eval(f)
@@ -485,35 +487,34 @@ class Helpers {
 
   getRelativePosition = (sn:DisplayInstance, dn:DisplayInstance, gap:number):number => {
     let r:number = 1
-
-    if(sn.position.x + sn.size.width + (2*gap) <= dn.position.x) { 
-      if(sn.position.y + sn.size.height + (2*gap) < dn.position.y) {
+    if(sn.position.x + sn.size.width + (2*gap) <= dn.position.x) {  //sn is left
+      if(sn.position.y + sn.size.height + (2*gap) < dn.position.y) { //sn is up
         return 1
       }
-      else if(dn.position.y + dn.size.height + (2*gap) <= sn.position.y) {
+      else if(sn.position.y >= dn.position.y + dn.size.height + (2*gap) ) { //sn is down
         return 3
       }
-      else {
+      else { //sn overlaps Y
         return 2
       }
-    } else if(dn.position.x + dn.size.width + (2*gap) <= sn.position.x) { 
-      if(sn.position.y + sn.size.height + (2*gap) <= dn.position.y) {
+    } else if(sn.position.x >= dn.position.x + dn.size.width + (2*gap)) { //sn is right
+      if(sn.position.y + sn.size.height + (2*gap) <= dn.position.y) { //sn is up
         return 7
       }
-      else if(dn.position.y + dn.size.height + (2*gap) <=sn.position.y) {
+      else if(sn.position.y >= dn.position.y + dn.size.height + (2*gap) ) { //sn is down
         return 9
       }
-      else {
+      else { //sn overlaps Y
         return 8
       }
-    } else {
-      if(sn.position.y + sn.size.height + (2*gap) <= dn.position.y) {
+    } else { //sn overlaps X
+      if(sn.position.y + sn.size.height + (2*gap) <= dn.position.y) {  //sn is up
         return 4
       }
-      else if(dn.position.y + dn.size.height + (2*gap) <= sn.position.y) {
+      else if(sn.position.y >= dn.position.y + dn.size.height + (2*gap) ) { //sn is down
         return 6
       }
-      else {
+      else { //sn overlaps Y
         return 5
       } 
     }

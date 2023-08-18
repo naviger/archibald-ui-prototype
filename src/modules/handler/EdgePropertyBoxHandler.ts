@@ -20,9 +20,8 @@ export class EdgePropertyBoxHandler {
     if(!key && this.canvasController.mode === CanvasMode.Ready){
       const el = document.getElementById(id) as Element
       let nodeEls = document.getElementsByClassName("toggle-pointer")
-      let pb:Element = document.getElementById("edge-property-box") as Element
       for (let i: number = 0; i < nodeEls.length; i++) { nodeEls[i].classList.add("no-display"); }
-      this.canvasController.setDragData({type: 'property-box', currentId: id, offset:{x: (el?.clientLeft - pos.x), y:(el?.clientTop - pos.y)}, position:pos})
+      this.canvasController.setDragData({type: 'property-box', currentId: id, offset:{x: (el?.clientLeft - pos.x), y:(el?.clientTop - pos.y + 32)}, position:pos})
       this.canvasController.setCanvasMode(CanvasMode.MovePropertyBox, id)
     }
   }
@@ -37,12 +36,13 @@ export class EdgePropertyBoxHandler {
   move = (id:string, pos:Position) => {
     let box:HTMLElement = document.getElementById(id) as HTMLElement
     let bbox:DOMRect = box.getBoundingClientRect()
-    //console.log("MOVE: ", id, pos, bbox, this.canvasController.dragData.offset)
     if(this.canvasController.mode === CanvasMode.MovePropertyBox) {
       if(box) {
         box.setAttribute("style", "left: " + (pos.x) + "px; top: " + (pos.y) + "px;")
       } 
     }
+    let p:DOMRect = box.getBoundingClientRect()
+    this.canvasController.setPinnedPosition({x: p.left, y:p.top })
   }
 
   setEdgeLayout = (id:string, layout:EdgeLayout) => {
@@ -64,6 +64,10 @@ export class EdgePropertyBoxHandler {
     let ea = structuredClone(this.canvasController.edges)
     ea.splice(tgt, 1)
     this.canvasController.setEdges(ea)
+  }
+
+  togglePin  = () => {
+    this.canvasController.setPinned(this.canvasController.pinned ? false : true)
   }
 
 }

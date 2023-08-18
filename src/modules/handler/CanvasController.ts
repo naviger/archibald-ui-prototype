@@ -25,10 +25,14 @@ export class CanvasController {
   newEdge:EdgeDisplayInstance
   setNewEdge:Function
   setSelected:Function
+  pinned: boolean
+  setPinned: Function
+  pinnedPosition: Position
+  setPinnedPosition: Function
 
   currentId:string = ""
 
-  constructor(defaults:DefaultValues, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, setSelected:Function) {
+  constructor(defaults:DefaultValues, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, setSelected:Function,   pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function) {
     this.defaults = defaults
     this.mode = mode
     this.setMode = setMode
@@ -43,6 +47,10 @@ export class CanvasController {
     this.newEdge = newEdge
     this.setNewEdge = setNewEdge
     this.setSelected = setSelected
+    this.pinned = pinned
+    this.setPinned = setPinned
+    this.pinnedPosition = pinnedPosition
+    this.setPinnedPosition = setPinnedPosition
   }
 
   select = (type:string, id:string, offset:Position, position:Position) => {
@@ -85,7 +93,6 @@ export class CanvasController {
   replaceAnchorable = (a:NodeDisplayInstance | JunctionDisplayInstance) => {
     let found:string = ""
     let na:Array<NodeDisplayInstance> = this.nodes.map((i:NodeDisplayInstance) => {
-      //console.log('replace anchor: ', i, a)
       if(i.id === a.id) {
         found="n"
         return a as NodeDisplayInstance
@@ -153,7 +160,6 @@ export class CanvasController {
         this.clearTempEdge()
         this.clearNoPointerEvents("all")
         this.setNewEdge({ id:"temp-edge", edgeData: { edgeId:'temp-edge', name:'temp-edge', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp-edge'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]})
-        console.log("CLEAR NEW EDGE:", document.getElementById("temp-edge"))
         this.setDragData({type:"none", currentId: "", offset:{x:0, y:0}, position:{x: 0, y: 0}})
         break;
     }
@@ -178,8 +184,6 @@ export class CanvasController {
   }
 
   clearSelect = () => {
-    console.log("CLEAR SELECT")
-    //this.clearPointerEvents()
     let na:Array<NodeDisplayInstance> = this.nodes.map((n, i)=>{
       n.isSelected = false
       return n
@@ -197,7 +201,6 @@ export class CanvasController {
   }
 
   setNoPointerEvents = (type:string, except?:string) => {
-    console.log("Set:", type, except)
     let nodeEls = document.getElementsByClassName("node-ptr")
     let edgeEls = document.getElementsByClassName("edge-ptr")
     let junctionEls = document.getElementsByClassName("junction-ptr")
@@ -232,7 +235,6 @@ export class CanvasController {
   }
 
   clearNoPointerEvents = (type:string) => {
-    console.log("CLEAR:", type)
     let nodeEls = document.getElementsByClassName("node-ptr")
     let edgeEls = document.getElementsByClassName("edge-ptr")
     let junctionEls = document.getElementsByClassName("junction-ptr")

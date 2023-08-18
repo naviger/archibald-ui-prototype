@@ -102,7 +102,6 @@ export class BaseEdge {
         let theta:number = helpers.getStraightAngle(s, e)
         start = getStartDecoration(this.display.id, this.display.edgeData.type, s, e, theta, styles)
         end = getEndDecoration(this.display.id, this.display.edgeData.type, e, e, theta, styles)
-        //console.log("LINE: n", this.display.id, p)
         return (
           <g key={this.display.id} id={this.display.id} >
             <polyline id={this.display.id + ":bg"} className="edge-ptr" points={p} data-edge-id={this.display.edgeData.edgeId} data-element='connector' strokeWidth="10" strokeOpacity="0.1" strokeDasharray={this.strokeStyle} stroke={this.strokeColor} fill="none" onClick={this.edgeClick} onMouseEnter={this.edgeEnter} onMouseLeave={this.edgeLeave} onMouseUp={this.edgeUp}/>
@@ -116,7 +115,6 @@ export class BaseEdge {
       case EdgeLayout.NinetyDegree:
         i=0;
         this.display.route.forEach((pt:Position) => {    
-          if(this.display.isSelected && (i >= 0) && (i < this.display.route.length)) {
             if(i === 0) {
               let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.EndAnchor)
               anchors.push(ea0.render())
@@ -156,8 +154,7 @@ export class BaseEdge {
                 anchors.push(ea1.render())
               } 
             }
-          }
-
+     
           p += pt.x + "," + pt.y + " "
           ptprev = pt
           i++

@@ -19,3 +19,18 @@
 }
 
 .edge-data-value {}
+
+
+.panel-top {
+  display:flex;
+  flex-direction:row;
+}
+
+.pin-indicator {
+ width:30px;
+ height:30px;
+}
+
+.pin-svg {
+  cursor:pointer;
+}

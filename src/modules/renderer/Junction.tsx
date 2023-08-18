@@ -52,7 +52,6 @@ export class Junction {
   }
 
   mouseUp:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log("MOUSEUP:", e.currentTarget)
     this.params.drop()
   }
 
@@ -69,7 +68,6 @@ export class Junction {
   }
 
   mouseMove:MouseEventHandler<SVGGElement> = (e) => {
-    //console.log("MOUSE MOVE:", e.button)
     if(this.selectedAnchor.length === 0) {
       this.isSelected=true
       this.params.move(e.currentTarget.id.split(":")[0],{x: e.pageX, y:e.pageY})

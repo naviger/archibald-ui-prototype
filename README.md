@@ -14,6 +14,8 @@
   - Add nesting of items with resizable cards
   - ~~Add physical items new to 3.2 Technology Layer~~ 
   - Add keyboard events (delete, escape to deselect, etc.)
+  - Add pinning capability to property boxes
+  - Change default property box position to top right extends +
 
 ## Known Issues:
   - ~~Selecting Edge does not update Edge Data UI component with current edge~~

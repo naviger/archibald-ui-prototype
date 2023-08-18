@@ -54,7 +54,6 @@ export class JunctionHandler {
     this.canvasController.setJunctions(ja)
     this.canvasController.setDragData({type:"junction", currentId:id, offset: offset, position: pos})
     this.canvasController.setCanvasMode(CanvasMode.MoveJunction, id)
-    console.log("JID: ", id)
     this.canvasController.setSelected("junction:" + id)
   }
 
@@ -149,13 +148,11 @@ export class JunctionHandler {
       el?.setAttribute("stroke-opacity", "1")
       let el2 = document.getElementById("temp-edge:edge")
       el2?.setAttribute("points", "-1,-1 -1,-1")
-      //console.log("EL2:", el2)
       let eaid:number = Number.parseInt(this.canvasController.dragData.currentId.split(":")[1])
       let a = structuredClone(this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, id.split(":")[0]))
       let aa = a?.anchors.find((a:Anchorable) => { return a.id === id.split(":")[1]})
       let oldNObj:string = ""
       let oldNA:string = ""
-      //console.log("END END MOVE: ", id, ", ", eaid, " | ", this.canvasController.dragData.currentId, e.anchors)
       
       if(e && a && aa) {
         switch(e.style.layout) {
@@ -176,7 +173,6 @@ export class JunctionHandler {
             break
           case EdgeLayout.Bezier:
             let ea:string = this.canvasController.dragData.currentId.split(":")[1]
-            //let d:string[] = el2?.getAttribute("data-d")?.split(" ")
             if(ea === "S") {
               oldNObj = e.edgeData.destinationObject
               oldNA = e.destinationAnchor
@@ -222,14 +218,12 @@ export class JunctionHandler {
       let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj)
       a = this.helpers.addEdgeToAnchor(a, aa?.id as string, e.id)
       oa = this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
-      //console.log("NEW E:", oa, " ==> ", a)
       
       this.canvasController.replaceEdge(e)
       this.canvasController.replaceAnchorable(a)
       this.canvasController.replaceAnchorable(oa)
       
       this.canvasController.clearTempEdge()
-      //this.canvasController.setEdges(ear)
       this.canvasController.setCanvasMode(CanvasMode.Ready)
     } else if(this.canvasController.mode === CanvasMode.AddEdge) {
       let ed:EdgeDisplayInstance = structuredClone(this.canvasController.newEdge);

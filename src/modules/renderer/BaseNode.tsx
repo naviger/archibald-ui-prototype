@@ -14,7 +14,6 @@ export class BaseNode {
   constructor(node:NodeDisplayInstance, params:NodeParameters) {
     this.display = node
     this.params = params
-    var z = helper.GetStyle(node.nodeData.nodeId, "z-index")
   }
 
   display: NodeDisplayInstance
@@ -72,7 +71,6 @@ export class BaseNode {
     if(e.altKey) {
       this.params.addAnchor(e.currentTarget.id, this.addAnchorPos)
     } else if(this.display.status === NodeStatus.Ready) {
-      //this.setTop()
       this.params.startMove(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY })
     }
   }

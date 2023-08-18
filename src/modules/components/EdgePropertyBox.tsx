@@ -1,4 +1,4 @@
-import React, { MouseEventHandler } from "react"
+import React, { MouseEventHandler, useState } from "react"
 import { Button, } from "./Button"
 import './EdgePropertyBox.css'
 import { EdgeLayout } from "../enums/enumEdgeLayout"
@@ -10,6 +10,10 @@ import { StyleObject } from "../structure/StyleObject"
 import { getEndDecoration } from "../renderer/EndDecorations"
 import { Edge } from "../structure/Edge"
 import Helpers from '../utilities/Helpers'
+// import pin from './pin.svg'
+// import unpin from './unpin.svg'
+
+
 
 export type EdgePropertyBoxProps = {
   id:string
@@ -22,11 +26,16 @@ export type EdgePropertyBoxProps = {
   remove:Function
   position:Position
   dataRenderer:Function
+  togglePin:Function
+  pinned: boolean
 }
 
 export const EdgePropertyBox = (props:EdgePropertyBoxProps):JSX.Element => { 
-  
-  const flyoutOpen = <svg width="10">
+
+// const [pinned, setPinned] = useState<boolean>(false)
+// const [position, setPosition] = useState<Position>(props.position)
+
+const flyoutOpen = <svg width="10">
     <g>
       <path d="m 0,110 l 0 -90 a 10 10 1 0 1 10 10 l 0 95 a 10 10 1 0 1 -10 10" fill="grey"/>
       <polyline points="2,75 2,83 8,79 2,75" fill="white" />
@@ -65,14 +74,22 @@ const flyoutClose = <svg width="10">
     
   }
   
+  const clickPin = () => {
+    props.togglePin()
+  }
+
+  const pin = <svg xmlns="http://www.w3.org/2000/svg" id="mdi-pin-outline" x="-10" y="4" height="20" width="30" viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12M8.8,14L10,12.8V4H14V12.8L15.2,14H8.8Z" /></svg>
+
+  const unpin = <svg xmlns="http://www.w3.org/2000/svg" id="mdi-pin-off" x="-10" y="4" height="20" width="30" viewBox="0 0 24 24"><path d="M2,5.27L3.28,4L20,20.72L18.73,22L12.8,16.07V22H11.2V16H6V14L8,12V11.27L2,5.27M16,12L18,14V16H17.82L8,6.18V4H7V2H17V4H16V12Z" /></svg>
+
   const onDragHandleMouseDown:MouseEventHandler<SVGSVGElement> = (e) => {
-    props.dragStart(props.id, e.shiftKey, {x:e.clientY, y:e.clientY})
+    props.dragStart(props.id, e.shiftKey, {x:e.pageY, y:e.pageY})
     setInDrag(true)
   }
 
   const onMove:MouseEventHandler<HTMLElement> = (e) => {
     let bbox:DOMRect = document.getElementById("canvas")?.getBoundingClientRect() as DOMRect
-    props.move(e.currentTarget.id, {x:e.pageX - bbox.left, y:e.pageY - bbox.top})
+    props.move(e.currentTarget.id, {x:e.pageX - bbox.left, y:e.pageY - bbox.top}, {x:e.pageX, y:e.pageY})
   }
 
   const onDragHandleMouseUp:MouseEventHandler<SVGSVGElement> = (e) => {
@@ -279,26 +296,41 @@ const flyoutClose = <svg width="10">
   const reltype = helpers.getEnumName(EdgeRelationships, props.data.type)
   const dragStyle = inDrag ? " no-pointer-events":""
   const data = props.dataRenderer(props.data)
+
+  const pinstate = props.pinned ? pin : unpin
+  
   return (
     <div id="edge-property-box" className={"property-panel toggle-pointer"+ dragStyle} style={{top:props.position.y, left: props.position.x}} onMouseMove={onMove} >
       <div className="box-handle" style={{zIndex:"999"}}>
-        <svg className="box-handle-svg" onMouseDown={onDragHandleMouseDown} onMouseUp={onDragHandleMouseUp} height="32" width="12">
-          <path d="m 2,9 l 5,-5 l 7,0 l 0,21 l -7,0 l -5, -5 l 0, -11" stroke="darkgrey" fill="lightgrey"/>
-          <circle key="c1" cx="10" cy="9" r="1.8" strokeWidth="0" fill="grey"></circle>
-          <circle key="c2" cx="10" cy="15" r="1.8" strokeWidth="0" fill="grey"></circle>
-          <circle key="c3" cx="10" cy="21" r="1.8" strokeWidth="0" fill="grey"></circle>
-          <circle key="c4" cx="5" cy="12" r="1.8" strokeWidth="0" fill="grey"></circle>
-          <circle key="c5" cx="5" cy="19" r="1.8" strokeWidth="0" fill="grey"></circle>
+        <div>
           
-          <circle key="ci1" cx="10" cy="9" r=".75" strokeWidth="0" fill="lightgrey"></circle>
-          <circle key="ci2" cx="10" cy="15" r=".75" strokeWidth="0" fill="lightgrey"></circle>
-          <circle key="ci3" cx="10" cy="21" r=".75" strokeWidth="0" fill="lightgrey"></circle>
-          <circle key="ci4" cx="5" cy="12" r=".75" strokeWidth="0" fill="lightgrey"></circle>
-          <circle key="ci5" cx="5" cy="19" r=".75" strokeWidth="0" fill="lightgrey"></circle>
-        </svg>
+          <svg className="box-handle-svg" onMouseDown={onDragHandleMouseDown} onMouseUp={onDragHandleMouseUp} height="32" width="12">
+            <path d="m 2,9 l 5,-5 l 7,0 l 0,21 l -7,0 l -5, -5 l 0, -11" stroke="darkgrey" fill="lightgrey"/>
+            <circle key="c1" cx="10" cy="9" r="1.8" strokeWidth="0" fill="grey"></circle>
+            <circle key="c2" cx="10" cy="15" r="1.8" strokeWidth="0" fill="grey"></circle>
+            <circle key="c3" cx="10" cy="21" r="1.8" strokeWidth="0" fill="grey"></circle>
+            <circle key="c4" cx="5" cy="12" r="1.8" strokeWidth="0" fill="grey"></circle>
+            <circle key="c5" cx="5" cy="19" r="1.8" strokeWidth="0" fill="grey"></circle>
+            
+            <circle key="ci1" cx="10" cy="9" r=".75" strokeWidth="0" fill="lightgrey"></circle>
+            <circle key="ci2" cx="10" cy="15" r=".75" strokeWidth="0" fill="lightgrey"></circle>
+            <circle key="ci3" cx="10" cy="21" r=".75" strokeWidth="0" fill="lightgrey"></circle>
+            <circle key="ci4" cx="5" cy="12" r=".75" strokeWidth="0" fill="lightgrey"></circle>
+            <circle key="ci5" cx="5" cy="19" r=".75" strokeWidth="0" fill="lightgrey"></circle>
+          </svg>
+        </div>
       </div>
       <div id="edge-inner-property-panel" className={"inner-property-panel toggle-pointer " + dragStyle} style={{zIndex:"998"}}>
-        <div className="section-title">{props.data.name}</div>
+        <div className="panel-top">
+          <div className='pin-indicator'>
+            <svg className="pin-svg" onClick={clickPin} height="32" width="12">
+              <g>
+                {pinstate}
+              </g>
+            </svg>  
+          </div>
+          <div className="section-title">{props.data.name}</div>
+        </div>
         <div className="section-horizontal toggle-pointer">
           <Button key="bl1" iconName={"straight"} onClick={onLayoutClick} enabled={true}  />
           <Button key="bl2" iconName={"orthagonal"} onClick={onLayoutClick} enabled={true}  />

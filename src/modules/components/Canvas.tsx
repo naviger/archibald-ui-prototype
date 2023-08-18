@@ -106,6 +106,9 @@ export const Canvas = (props:CanvasProps) => {
   const [dragData, setDragData] = useState(ds)
   const [mode, setMode] = useState<CanvasMode>(CanvasMode.Ready)
   const [selected, setSelected] = useState<string>("")
+  const [pinned, setPinned] = useState<boolean>(true)
+  const [pinnedPosition, setPinnedPosition] = useState<Position>({x:40, y:40})
+  
 
   if(props.modelData) { md = props.modelData.nodes}
   const [nodes, setNodes] = useState(md)
@@ -119,7 +122,7 @@ export const Canvas = (props:CanvasProps) => {
   let edd:EdgeDisplayInstance = { id:"temp-edge", edgeData: { edgeId:'temp-edge', name:'temp-edge', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp-edge'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
   const [newEdge, setNewEdge] = useState<EdgeDisplayInstance>(edd)
 
-  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, setSelected)
+  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, setSelected, pinned, setPinned, pinnedPosition, setPinnedPosition)
   
   let nodeHandler:NodeHandler = new NodeHandler(canvasController)
   let nodeAnchorHandler:NodeAnchorHandler = new NodeAnchorHandler(canvasController)
@@ -140,8 +143,6 @@ export const Canvas = (props:CanvasProps) => {
     } else if(e.shiftKey && mode === CanvasMode.AddEdge) {
       edgeHandler.moveAddEdge(pos, bbox)
     } else if (mode === CanvasMode.MoveEdgeEndAnchor) {
-      // pos.x = e.pageX - dragData.offset.x
-      // pos.y = e.pageY - dragData.offset.y
       edgeHandler.moveEdgeEndPoint(pos, bbox)
     } else if(mode === CanvasMode.MoveJunction) {
       pos.x = e.pageX 
@@ -159,10 +160,8 @@ export const Canvas = (props:CanvasProps) => {
   }
 
   let backgroundMouseUp = (e:React.MouseEvent<SVGElement>) => {
-    console.log("canvas mouse up")
     if(mode===CanvasMode.MoveEdgeAnchor  || mode === CanvasMode.MoveEdgeHandle) {
       canvasController.setCanvasMode(CanvasMode.Ready)
-      //canvasController.clearPointerEvents()
       setDragData({type:'none', currentId:'', offset:{x:-1, y:-1}, position:{x:-1, y: -1}})
       canvasController.clearSelect()
     } else if(mode === CanvasMode.AddEdge || mode === CanvasMode.MoveEdgeEndAnchor) {
@@ -477,7 +476,9 @@ export const Canvas = (props:CanvasProps) => {
 
     if(t === "edge") {
       let curEdge = edges.find((ed) => { return ed.id === id}) as EdgeDisplayInstance
+      
       if(curEdge) {
+        let ex = helpers.getExtents(curEdge.route)
         let  params:EdgePropertyBoxProps = {
           id:id as string,
           data:curEdge?.edgeData as Edge,
@@ -488,7 +489,9 @@ export const Canvas = (props:CanvasProps) => {
           setEdgeType: edgePropertyBoxHandler.setEdgeType,
           move: edgePropertyBoxHandler.move,
           remove: edgePropertyBoxHandler.remove,
-          position:{x:curEdge?.route[0].x + 30, y:curEdge.route[0].y + 30 }
+          pinned: pinned,
+          togglePin: edgePropertyBoxHandler.togglePin,
+          position: pinned ? pinnedPosition :  {x:ex.bottomright.x + 30, y:ex.topleft.y }
         }
     
         propertyBox = <EdgePropertyBox {...params} />
@@ -510,6 +513,6 @@ export const Canvas = (props:CanvasProps) => {
       <span id="top"></span>
     </svg>
     { propertyBox }
-    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + canvasController.currentId}</span>
+    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + pinned}</span>
   </div>
 }

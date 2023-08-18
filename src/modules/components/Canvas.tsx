@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useEffect, useState} from "react"
 import Helpers from "../utilities/Helpers"
 import { IModel } from "../structure/Model"
 import { BaseNode } from "../renderer/BaseNode"
@@ -122,7 +122,7 @@ export const Canvas = (props:CanvasProps) => {
   let edd:EdgeDisplayInstance = { id:"temp-edge", edgeData: { edgeId:'temp-edge', name:'temp-edge', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp-edge'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
   const [newEdge, setNewEdge] = useState<EdgeDisplayInstance>(edd)
 
-  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, setSelected, pinned, setPinned, pinnedPosition, setPinnedPosition)
+  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, selected, setSelected, pinned, setPinned, pinnedPosition, setPinnedPosition)
   
   let nodeHandler:NodeHandler = new NodeHandler(canvasController)
   let nodeAnchorHandler:NodeAnchorHandler = new NodeAnchorHandler(canvasController)
@@ -131,6 +131,33 @@ export const Canvas = (props:CanvasProps) => {
   let edgeHandleHandler:EdgeHandleHandler = new EdgeHandleHandler(canvasController)
   let edgePropertyBoxHandler = new EdgePropertyBoxHandler(canvasController)
   let junctionHandler = new JunctionHandler(canvasController)
+
+  const checkKeyPress = (e:KeyboardEvent) =>{
+    e.stopImmediatePropagation()
+    if(e.key === "Delete" || e.key === "Backspace") {
+      var o = canvasController.selected.split(":")
+      if(o[0]==="edge") {
+        edgeHandler.remove(o[1])
+      } else if(o[0] === "node") { 
+        nodeHandler.remove(o[1])
+      } else if(o[0] === "junction") {
+        junctionHandler.remove(o[1])
+      } 
+    }
+    else if(e.key === "Escape") {
+      canvasController.setMode(CanvasMode.Ready)
+      canvasController.clearSelect()
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener("keyup", checkKeyPress);
+    return () => {
+      window.removeEventListener("keyup", checkKeyPress);
+    };
+  }, [checkKeyPress]);
+
+
 
   let backgroundMove = (e:React.MouseEvent<SVGElement>) => {
     let pos:Position = {x:0, y:0}
@@ -513,6 +540,6 @@ export const Canvas = (props:CanvasProps) => {
       <span id="top"></span>
     </svg>
     { propertyBox }
-    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + pinned}</span>
+    <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + selected}</span>
   </div>
 }

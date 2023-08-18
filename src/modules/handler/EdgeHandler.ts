@@ -203,6 +203,13 @@ export class EdgeHandler {
       }
     }
   }
+
+  remove = (id:string) => {
+    let tgt:number = this.canvasController.edges.findIndex((e)=>{return e.id === id})
+    let ea = structuredClone(this.canvasController.edges)
+    ea.splice(tgt, 1)
+    this.canvasController.setEdges(ea)
+  }
 }
 
 export class EdgeAnchorHandler {
@@ -409,4 +416,6 @@ export class EdgeHandleHandler {
     this.canvasController.setCanvasMode(CanvasMode.Ready)
     this.canvasController.setDragData({ type: 'none', currentId: '', offset: { x: -1, y: -1 }, position: { x: -1, y: -1 } })
   }
+
+
 }

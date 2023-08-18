@@ -73,6 +73,7 @@ export class BaseNode {
     } else if(this.display.status === NodeStatus.Ready) {
       this.params.startMove(e.currentTarget.id, e.shiftKey, {x:e.clientX, y:e.clientY })
     }
+    this.params.setSelected(e.currentTarget.id)
   }
 
   nodeMove:MouseEventHandler<SVGGElement> = (e) => {

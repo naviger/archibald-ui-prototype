@@ -24,6 +24,7 @@ export class CanvasController {
   setJunctions: Function
   newEdge:EdgeDisplayInstance
   setNewEdge:Function
+  selected:string
   setSelected:Function
   pinned: boolean
   setPinned: Function
@@ -32,7 +33,7 @@ export class CanvasController {
 
   currentId:string = ""
 
-  constructor(defaults:DefaultValues, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, setSelected:Function,   pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function) {
+  constructor(defaults:DefaultValues, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, selected:string, setSelected:Function,   pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function) {
     this.defaults = defaults
     this.mode = mode
     this.setMode = setMode
@@ -46,6 +47,7 @@ export class CanvasController {
     this.setJunctions = setJunctions
     this.newEdge = newEdge
     this.setNewEdge = setNewEdge
+    this.selected = selected
     this.setSelected = setSelected
     this.pinned = pinned
     this.setPinned = setPinned
@@ -92,6 +94,7 @@ export class CanvasController {
 
   replaceAnchorable = (a:NodeDisplayInstance | JunctionDisplayInstance) => {
     let found:string = ""
+    if(!a) return
     let na:Array<NodeDisplayInstance> = this.nodes.map((i:NodeDisplayInstance) => {
       if(i.id === a.id) {
         found="n"
@@ -119,7 +122,6 @@ export class CanvasController {
         this.setJunctions(ja)
       }
     }
-
   }
 
   setCanvasMode = (m:CanvasMode, except?:string) => {
@@ -198,6 +200,7 @@ export class CanvasController {
 
     this.setDragData({type: 'none', currentId: "", offset:{x:0, y:0}, position:{x: 0, y: 0}})
     this.removeTop()
+    this.setSelected("")
   }
 
   setNoPointerEvents = (type:string, except?:string) => {

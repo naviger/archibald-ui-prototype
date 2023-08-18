@@ -39,25 +39,15 @@ class Helpers {
   }
 
   removeEdgeToAnchor = (a:NodeDisplayInstance|JunctionDisplayInstance, aid:string, eid:string) => {
-    a.anchors.forEach((ai:JunctionAnchorData | NodeAnchorData) => {
-      if(ai.id === aid ) {
-        ai.edges.forEach((ei:string, i:number) => {if(ei === eid) { ai.edges.splice(i,1)}})
-      }
-    })
-    return a
+    if(a && a.anchors) {
+      a.anchors.forEach((ai:JunctionAnchorData | NodeAnchorData) => {
+        if(ai.id === aid ) {
+          ai.edges.forEach((ei:string, i:number) => {if(ei === eid) { ai.edges.splice(i,1)}})
+        }
+      })
+      return a
+    }
   }
-
-  
-
-  // GetStyle = (tgt:string, style:string):string => {
-  //   var el:Element|null = document.getElementById(tgt)
-  //   if(el!=null) {
-  //     var styles:CSSStyleDeclaration = window.getComputedStyle(el)
-  //     return styles.getPropertyValue(style);
-  //   } else {
-  //     return ""
-  //   }
-  // }
 
   getAdjustedRoute = (nodes:Array<NodeDisplayInstance>, junctions: Array<JunctionDisplayInstance>, ed:EdgeDisplayInstance, movedNodeId:string):Position[] => {
     var p:Position[] = [];
@@ -414,35 +404,37 @@ class Helpers {
   getFiveSegmentRoute = (sn:NodeDisplayInstance|JunctionDisplayInstance, dn: NodeDisplayInstance|JunctionDisplayInstance, e:EdgeDisplayInstance) => {
     const sa:NodeAnchorData = sn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.sourceAnchor}) as NodeAnchorData
     const da: NodeAnchorData = dn.anchors.find((a:NodeAnchorData|JunctionAnchorData)=> { return a.id === e.destinationAnchor}) as NodeAnchorData
-    const ss1:EdgeSide = this.getSide(sn, sa.id)
-    const ds1:EdgeSide = this.getSide(dn, da.id)
-    const lt:string = this.getLayout(ss1, ds1)
-    const n = this.getRelativePosition(sn, dn, 10)
-    const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
-    const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
- 
-    let p:Position[] = []
-    let d:string[] = s.split(":")
-    let spCalc:string[] = d[3].split(",")
-    let pCalc = d[4].split(",")
-    
-    let sp:Position = {
-      x: this.calculate(spCalc[0], {x:0,y:0}, sn, dn, sa, da),
-      y: this.calculate(spCalc[1], {x:0,y:0}, sn, dn, sa, da)
+    if(true) {
+      const ss1:EdgeSide = this.getSide(sn, sa.id)
+      const ds1:EdgeSide = this.getSide(dn, da.id)
+      const lt:string = this.getLayout(ss1, ds1)
+      const n = this.getRelativePosition(sn, dn, 10)
+      const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
+      const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
+  
+      let p:Position[] = []
+      let d:string[] = s.split(":")
+      let spCalc:string[] = d[3].split(",")
+      let pCalc = d[4].split(",")
+      
+      let sp:Position = {
+        x: this.calculate(spCalc[0], {x:0,y:0}, sn, dn, sa, da),
+        y: this.calculate(spCalc[1], {x:0,y:0}, sn, dn, sa, da)
+      }
+
+      p.push(sp)
+      pCalc.forEach((pi) => {
+        let c = pi.replace("[", "").replace("]", "").split("|")
+        if(c && c[0].length > 1 && c[1].length > 1) {
+          let x = this.calculate(c[0], sp, sn, dn, sa, da)
+          let y = this.calculate(c[1], sp, sn, dn, sa, da)
+          p.push({x:x,y:y})
+        } 
+      })
+
+      p.push(da.position)
+      return p
     }
-
-    p.push(sp)
-    pCalc.forEach((pi) => {
-      let c = pi.replace("[", "").replace("]", "").split("|")
-      if(c && c[0].length > 1 && c[1].length > 1) {
-        let x = this.calculate(c[0], sp, sn, dn, sa, da)
-        let y = this.calculate(c[1], sp, sn, dn, sa, da)
-        p.push({x:x,y:y})
-      } 
-    })
-
-    p.push(da.position)
-    return p
   }
 
   isJunction = (i:DisplayInstance):boolean => {

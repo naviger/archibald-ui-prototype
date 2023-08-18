@@ -140,8 +140,7 @@ export class JunctionHandler {
     }
   }
 
-  endNewEdge = (id:String) => {
-    
+  endNewEdge = (id:String) => {   
     if(this.canvasController.mode === CanvasMode.MoveEdgeEndAnchor) {
       let e = structuredClone(this.canvasController.edges.find((e) => {return e.id === this.canvasController.dragData.currentId.split(":")[0]})) as EdgeDisplayInstance
       let el = document.getElementById(this.canvasController.dragData.currentId.split(":")[0] + ":edge")
@@ -215,9 +214,10 @@ export class JunctionHandler {
         }
       }
 
-      let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj)
+      let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj) 
       a = this.helpers.addEdgeToAnchor(a, aa?.id as string, e.id)
-      oa = this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
+     // oa = 
+      this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
       
       this.canvasController.replaceEdge(e)
       this.canvasController.replaceAnchorable(a)
@@ -317,5 +317,12 @@ export class JunctionHandler {
       }
       this.canvasController.setCanvasMode(CanvasMode.Ready)
     }
+  }
+
+  remove = (id:string) => {
+    let tgt:number = this.canvasController.junctions.findIndex((e)=>{return e.id === id})
+    let ja = structuredClone(this.canvasController.junctions)
+    ja.splice(tgt, 1)
+    this.canvasController.setJunctions(ja)
   }
 }

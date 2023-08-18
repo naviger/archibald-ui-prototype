@@ -333,6 +333,13 @@ export class NodeHandler {
       this.canvasController.setNodes(na)
     }
   }
+
+  remove = (id:string) => {
+    let tgt:number = this.canvasController.nodes.findIndex((e)=>{return e.id === id})
+    let na = structuredClone(this.canvasController.nodes)
+    na.splice(tgt, 1)
+    this.canvasController.setNodes(na)
+  }
 }
 
 export class NodeAnchorHandler {
@@ -453,7 +460,8 @@ export class NodeAnchorHandler {
 
       let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj)
       a = this.helpers.addEdgeToAnchor(a, aa?.id as string, e.id)
-      oa = this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
+      //oa = 
+      this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
       
       this.canvasController.replaceEdge(e)
       this.canvasController.replaceAnchorable(a)
@@ -557,4 +565,6 @@ export class NodeAnchorHandler {
 
   dragNewEdge = () => {
   }
+
+
 }

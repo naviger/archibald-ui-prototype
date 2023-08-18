@@ -10,10 +10,6 @@ import { StyleObject } from "../structure/StyleObject"
 import { getEndDecoration } from "../renderer/EndDecorations"
 import { Edge } from "../structure/Edge"
 import Helpers from '../utilities/Helpers'
-// import pin from './pin.svg'
-// import unpin from './unpin.svg'
-
-
 
 export type EdgePropertyBoxProps = {
   id:string
@@ -31,9 +27,6 @@ export type EdgePropertyBoxProps = {
 }
 
 export const EdgePropertyBox = (props:EdgePropertyBoxProps):JSX.Element => { 
-
-// const [pinned, setPinned] = useState<boolean>(false)
-// const [position, setPosition] = useState<Position>(props.position)
 
 const flyoutOpen = <svg width="10">
     <g>

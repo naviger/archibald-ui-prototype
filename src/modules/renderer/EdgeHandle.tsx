@@ -1,10 +1,4 @@
 import { MouseEventHandler } from "react";
-import { JsxElement } from "typescript";
-//import {color} from "../Archimate/archimateNodes";
-// import { AnchorStatus } from "../enums/enumAnchorStatus";
-// import { EdgeAnchorParameters } from "../structure/EdgeAnchorParameters";
-// import { EdgeAnchorData } from "../structure/EdgeAnchorData";
-// import { INodeDisplayInstance } from "../structure/INode";
 import { Color } from "../utilities/Color";
 import { EdgeAnchorStatus } from "../enums/enumEdgeAnchorStatus";
 import { EdgeConstraints } from "../enums/enumEdgeConstraints";

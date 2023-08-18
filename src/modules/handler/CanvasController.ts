@@ -59,7 +59,6 @@ export class CanvasController {
     let na:Array<NodeDisplayInstance> = this.nodes.map((n, i)=>{
       if(n.id === id && type === "node") {
         n.isSelected = true
-        //helpers.setPointerEvents("node", id)
       } else {
         n.isSelected = false;
       }

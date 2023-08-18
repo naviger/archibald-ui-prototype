@@ -55,9 +55,7 @@ class Helpers {
     var ep:Position = ed.route[ed.route.length-1]
     var nsp:Position = structuredClone(ed.route[0]); 
     var nep:Position = structuredClone(ed.route[ed.route.length-1])
-    var startAngle = this.getStraightAngle(ed.route[0], ed.route[1])
-    var endAngle = this.getStraightAngle(ed.route[ed.route.length - 1], ed.route[ed.route.length - 2])
-
+             
     var sn = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
     var en = this.findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject)
 
@@ -101,45 +99,18 @@ class Helpers {
       wd = ((en.position.x + ena.position.x) - (sn.position.x + sna.position.x))
     }
 
-    p.push(nsp)
+    
 
     let pts:Array<Position>  = structuredClone(ed.route);
     
     if(ed.route.length < 3 && ed.style.layout === EdgeLayout.Straight) {
+      p.push(nsp)
       p.push(nep)
     } 
-
     else if(ed.style.layout === EdgeLayout.NinetyDegree ||  ed.style.layout === EdgeLayout.Rounded) {
-      for(let i:number = 1; i < pts.length-1; i++) {
-        let np:Position = pts[i]
-        if(i == 1 && i ===  pts.length - 2 ) {
-          if(startAngle === 0 || startAngle === 180) {
-            np.x = nsp.x
-            np.y = nep.y
-          } else if(startAngle === 90 || startAngle === 270) {
-            np.x = nep.x
-            np.y = nsp.y
-          }
-        } else if(i === 1) {
-          if(startAngle === 0 || startAngle === 180) {
-            np.y = nsp.y
-          } else if(startAngle === 90 || startAngle === 270) {
-            np.x = nsp.x
-          }
-        } else if(i === pts.length - 2) {
-          if(endAngle === 0 || endAngle === 180) {
-            np.y = nep.y
-          } else if(endAngle === 90 || endAngle === 270) {
-            np.x = nep.x
-          } else {
-          }
-        }
-
-        p.push(np)
-      }
-
-      p.push(nep);
+      p = this.getFiveSegmentRoute(sn, en, ed)
     } else if(ed.style.layout == EdgeLayout.Bezier) {
+      p.push(nsp)
       p = structuredClone(ed.route)
 
       if(sn!=undefined && ed.edgeData.sourceObject === movedNodeId) {
@@ -177,9 +148,9 @@ class Helpers {
     let r:number = 0;
 
     if((s.x > e.x) && (s.y === e.y)) {
-      r = 0
-    } else if((s.x < e.x) && (s.y === e.y)) {
       r = 180
+    } else if((s.x < e.x) && (s.y === e.y)) {
+      r = 0
     } else if((s.y < e.y) && (s.x === e.x)) {
       r = 90
     } else if((s.y > e.y) && (s.x === e.x)) {
@@ -209,7 +180,6 @@ class Helpers {
 
   changeEdgeLayout = (edges:EdgeDisplayInstance[], nodes:NodeDisplayInstance[], junctions:JunctionDisplayInstance[], id:string, targetLayout: EdgeLayout, set:Function) => {
     let ea:EdgeDisplayInstance[] = edges.map((ed) => {
-      
       if(ed.id === id ) {
         switch (targetLayout) {
           case EdgeLayout.Bezier:
@@ -411,7 +381,7 @@ class Helpers {
       const n = this.getRelativePosition(sn, dn, 10)
       const k:string = lt + ":" + ss1 .toString() + "," +ds1.toString() + ":" + n + ":"
       const s:string = layouts.find((i:string) => { return i.startsWith(k)}) as string
-  
+
       let p:Position[] = []
       let d:string[] = s.split(":")
       let spCalc:string[] = d[3].split(",")
@@ -422,7 +392,7 @@ class Helpers {
         y: this.calculate(spCalc[1], {x:0,y:0}, sn, dn, sa, da)
       }
 
-      p.push(sp)
+      p.push({x: sn.position.x + sa.position.x, y: sn.position.y + sa.position.y})
       pCalc.forEach((pi) => {
         let c = pi.replace("[", "").replace("]", "").split("|")
         if(c && c[0].length > 1 && c[1].length > 1) {
@@ -432,7 +402,7 @@ class Helpers {
         } 
       })
 
-      p.push(da.position)
+      p.push({x: dn.position.x + da.position.x, y: dn.position.y + da.position.y})
       return p
     }
   }

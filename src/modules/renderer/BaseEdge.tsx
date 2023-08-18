@@ -190,6 +190,7 @@ export class BaseEdge {
         break
       case EdgeLayout.Rounded:
         i = 0
+        
         this.display.route.forEach((pt:Position) => {
           if(this.display.isSelected && (i >= 0) && (i < this.display.route.length)) {
             if(i === 0) {
@@ -239,8 +240,8 @@ export class BaseEdge {
             p = "M " + pt.x + "," + pt.y + " " 
           }
           else if( i < this.display.route.length - 1) {
-            let angle1 = helpers.getStraightAngle(ptprev, pt)
-            let angle2 = helpers.getStraightAngle(pt, this.display.route[i+1])
+            let angle1 = helpers.getOrthagonalAngle(ptprev, pt)
+            let angle2 = helpers.getOrthagonalAngle(pt, this.display.route[i+1])
             switch(angle1) {
               case EdgeDirection.Right:
                 p += " L " + (pt.x - 10) + "," + pt.y + " " 

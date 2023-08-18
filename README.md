@@ -17,6 +17,7 @@
   - ~~Add pinning capability to property boxes~~
   - ~~Change default property box position to top right extends +~~
   - ~~support diconnected edges~~
+  - Add history tracking
 
 ## Known Issues:
   - ~~Selecting Edge does not update Edge Data UI component with current edge~~

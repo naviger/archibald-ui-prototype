@@ -250,18 +250,6 @@ export class NodeHandler {
           if(n.id === id) {
             n.position.x = pos.x - this.canvasController.dragData.offset.x
             n.position.y = pos.y - (this.canvasController.dragData.offset.y + 30)
-
-            // for(let i=0; i < n.anchors.length; i++) {
-            //   if(n.anchors[i].edges.length > 0) {
-            //     n.anchors[i].edges.forEach((et: string)=> {
-            //       let e:EdgeDisplayInstance | undefined = this.canvasController.edges.find((er) => { return er.id === et})
-            //       if(e) {
-            //         e.route = this.helpers.getAdjustedRoute(this.canvasController.nodes, this.canvasController.junctions, e, n.id)
-                    
-            //       }
-            //     })
-            //   }
-            // }
           } 
           return n
         })
@@ -460,7 +448,6 @@ export class NodeAnchorHandler {
 
       let oa = this.helpers.findAnchorableObject(this.canvasController.nodes, this.canvasController.junctions, oldNObj)
       a = this.helpers.addEdgeToAnchor(a, aa?.id as string, e.id)
-      //oa = 
       this.helpers.removeEdgeToAnchor(oa, oldNA, eaid.toString())
       
       this.canvasController.replaceEdge(e)

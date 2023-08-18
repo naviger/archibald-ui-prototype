@@ -171,7 +171,6 @@ export class EdgeHandler {
               p +=  "L " + pt.x + "," +pt.y + " "
             }
             ptprev = pt
-            //i++
           })
           el?.setAttribute("d", p)
         } else  if(this.canvasController.edges[ie].style.layout === EdgeLayout.NinetyDegree) {
@@ -198,8 +197,6 @@ export class EdgeHandler {
 
           el?.setAttribute("points", p)
         }
-        // let el2 = document.getElementById(this.canvasController.dragData.currentId.split(":")[0] + ":edge")
-        // el2?.setAttribute("stroke-opacity", "0.1")
       }
     }
   }

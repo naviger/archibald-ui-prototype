@@ -34,7 +34,7 @@ export class EdgeHandler {
       const eid = id.split(":")[0];
       const tgt = document.getElementById(eid) as Element;
       let ed: EdgeDisplayInstance = this.canvasController.edges.find((t) => { return t.id === eid; }) as EdgeDisplayInstance;
-      if (ed.style) {
+      if (ed && ed.style) {
         tgt.setAttribute("stroke-width", ed.style.weight);
         tgt.setAttribute("stroke", ed.style.color);
       }
@@ -290,16 +290,13 @@ export class EdgeAnchorHandler {
             if(pt) {
               r[i] = (pt)
             }
-            //i++ 
           })
         }
-
         ed.route = r             
       }
       return ed; 
     })
     this.canvasController.setEdges(ea)
-  
   }
 
   dropAnchor = (id:string) => { 

@@ -9,6 +9,8 @@ import { EdgeDisplayInstance } from "../structure/Edge";
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { NodeDisplayInstance } from "../structure/Node";
 import { Position } from "../structure/Position";
+import { IModel } from "../structure/Model";
+import {History} from '../structure/History'
 
 export class CanvasController {
   defaults:DefaultValues
@@ -30,10 +32,13 @@ export class CanvasController {
   setPinned: Function
   pinnedPosition: Position
   setPinnedPosition: Function
+  history: History[]
+  setHistory: Function
+  model:IModel
 
   currentId:string = ""
 
-  constructor(defaults:DefaultValues, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, selected:string, setSelected:Function,   pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function) {
+  constructor(defaults:DefaultValues, model: IModel, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, selected:string, setSelected:Function, pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function, history:History[], setHistory:Function) {
     this.defaults = defaults
     this.mode = mode
     this.setMode = setMode
@@ -53,8 +58,15 @@ export class CanvasController {
     this.setPinned = setPinned
     this.pinnedPosition = pinnedPosition
     this.setPinnedPosition = setPinnedPosition
+    this.history = history
+    this.setHistory = setHistory
+    this.model = model
   }
 
+  getUniqueId = () => {
+
+  }
+  
   select = (type:string, id:string, offset:Position, position:Position) => {
     let na:Array<NodeDisplayInstance> = this.nodes.map((n, i)=>{
       if(n.id === id && type === "node") {
@@ -87,7 +99,6 @@ export class CanvasController {
         return i
       }
     })
-
     this.setEdges(ea)
   }
 
@@ -195,8 +206,8 @@ export class CanvasController {
       e.isSelected = false
       return e
     })
+    
     this.setEdges(ea)
-
     this.setDragData({type: 'none', currentId: "", offset:{x:0, y:0}, position:{x: 0, y: 0}})
     this.removeTop()
     this.setSelected("")

@@ -55,16 +55,22 @@ class Helpers {
     var ep:Position = ed.route[ed.route.length-1]
     var nsp:Position = structuredClone(ed.route[0]); 
     var nep:Position = structuredClone(ed.route[ed.route.length-1])
+
+    var startAngle:number = this.getOrthagonalAngle(ed.route[0], ed.route[1])
+    var endAngle:number = this.getOrthagonalAngle(ed.route[ed.route.length - 1], ed.route[ed.route.length - 2])
              
     var sn = this.findAnchorableObject(nodes, junctions, ed.edgeData.sourceObject)
     var en = this.findAnchorableObject(nodes, junctions, ed.edgeData.destinationObject)
 
     var stretchedX:boolean = false;
     var stretchedY:boolean = false;
+    var sside:EdgeSide|null = null
+    var sna:any
 
     if(sn!=undefined) {
-      var sna = sn.anchors.find((a:NodeAnchorData)=>{ return a.id === ed.sourceAnchor}) 
-     
+      sna = sn.anchors.find((a:NodeAnchorData)=>{ return a.id === ed.sourceAnchor}) as Anchorable
+      sside = this.getSide(sn, sna.id)
+
       if(sna){
         if(sp.x != (sn.position.x + sna.position.x)) {
           stretchedX = true
@@ -99,8 +105,6 @@ class Helpers {
       wd = ((en.position.x + ena.position.x) - (sn.position.x + sna.position.x))
     }
 
-    
-
     let pts:Array<Position>  = structuredClone(ed.route);
     
     if(ed.route.length < 3 && ed.style.layout === EdgeLayout.Straight) {
@@ -108,13 +112,56 @@ class Helpers {
       p.push(nep)
     } 
     else if(ed.style.layout === EdgeLayout.NinetyDegree ||  ed.style.layout === EdgeLayout.Rounded) {
-      p = this.getFiveSegmentRoute(sn, en, ed)
+      //let p2:Position[] = this.getFiveSegmentRoute(sn, en, ed)
+      p.push(nsp)
+
+      if(sside) {
+        if(sside === EdgeSide.Top) {
+          startAngle = 270
+        } else if(sside === EdgeSide.Right) {
+          startAngle= 0
+        } else if (sside === EdgeSide.Bottom) {
+          startAngle = 90
+        } else if(sside === EdgeSide.Left) {
+          startAngle = 180
+        }
+      }
+      
+      for(let i:number = 1; i < pts.length-1; i++) {
+        let np:Position = pts[i]
+        if(i == 1 && i ===  pts.length - 2 ) {
+          if(startAngle === 0 || startAngle === 180) {
+            np.x = nep.x
+            np.y = nsp.y
+          } else if(startAngle === 90 || startAngle === 270) {
+            np.x = nsp.x
+            np.y = nep.y
+          }
+        } else if(i === 1) {
+          if(startAngle === 0 || startAngle === 180) {
+            np.y = nsp.y
+          } else if(startAngle === 90 || startAngle === 270) {
+            np.x = nsp.x
+          }
+        } else if(i === pts.length - 2) {
+          if(endAngle === 0 || endAngle === 180) {
+            np.y = nep.y
+          } else if(endAngle === 90 || endAngle === 270) {
+            np.x = nep.x
+          } else {
+          }
+        }
+
+        p.push(np)
+      }
+
+      p.push(nep)
     } else if(ed.style.layout == EdgeLayout.Bezier) {
       p.push(nsp)
       p = structuredClone(ed.route)
 
       if(sn!=undefined && ed.edgeData.sourceObject === movedNodeId) {
-        var sna = sn.anchors.find((a:NodeAnchorData)=>{ return a.id === ed.sourceAnchor}) 
+        sna = sn.anchors.find((a:NodeAnchorData)=>{ return a.id === ed.sourceAnchor}) 
         let np:Position = {
           x: sn.position.x + (sna?.position.x as number), 
           y: sn.position.y + (sna?.position.y as number)

@@ -34,7 +34,6 @@ export class EdgeHandle {
     this.params.endMoveHandle(e.currentTarget.id)
   }
 
-
   render():JSX.Element {
     let fill:Color<string> = "white" 
 

@@ -60,7 +60,7 @@ import { DragData } from "../structure/DragData"
 import { EdgeParameters } from "../structure/EdgeParameters"
 import { Position } from "../structure/Position"
 import { CanvasMode } from "../enums/enumCanvasMode"
-import {  EdgeRelationships } from "../enums/enumEdgeRelationships"
+import { EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { DefaultValues } from "../structure/DefaultValues"
 import { EdgePropertyBox, EdgePropertyBoxProps } from "./EdgePropertyBox"
@@ -78,6 +78,7 @@ import { NodeAnchorHandler, NodeHandler } from "../handler/NodeHandler"
 import { CanvasController } from "../handler/CanvasController"
 import { EdgeAnchorHandler, EdgeHandleHandler, EdgeHandler } from "../handler/EdgeHandler"
 import { EdgePropertyBoxHandler } from "../handler/EdgePropertyBoxHandler"
+import { History } from '../structure/History'
 
 export type CanvasProps = {
   modelData?: IModel,
@@ -108,7 +109,11 @@ export const Canvas = (props:CanvasProps) => {
   const [selected, setSelected] = useState<string>("")
   const [pinned, setPinned] = useState<boolean>(true)
   const [pinnedPosition, setPinnedPosition] = useState<Position>({x:40, y:40})
+  const [history, setHistory] = useState<Array<History>>(props.modelData?.history as History[])
   
+  const getEdges = ():EdgeDisplayInstance[] => {
+    return edges
+  }
 
   if(props.modelData) { md = props.modelData.nodes}
   const [nodes, setNodes] = useState(md)
@@ -119,10 +124,11 @@ export const Canvas = (props:CanvasProps) => {
   if(props.modelData) { jd = props.modelData.junctions}
   const [junctions, setJunctions] = useState(jd)
 
+  
   let edd:EdgeDisplayInstance = { id:"temp-edge", edgeData: { edgeId:'temp-edge', name:'temp-edge', sourceObject:'unknown', destinationObject:'unknown',  type: EdgeRelationships.Association, label:'temp-edge'}, isSelected: false, isVisible:false, sourceAnchor:'unknown', position:{x:0, y:0}, size:{height:0, width:0}, status:0, destinationAnchor:'unknown', route: [{x:-1,y:-1},{x:-1, y:-1}], style: {weight:"1", layout: EdgeLayout.Straight, color: 'silver', style:'1'  }, anchors:[]}
   const [newEdge, setNewEdge] = useState<EdgeDisplayInstance>(edd)
 
-  const canvasController:CanvasController = new CanvasController(props.defaults,mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, selected, setSelected, pinned, setPinned, pinnedPosition, setPinnedPosition)
+  const canvasController:CanvasController = new CanvasController(props.defaults, props.modelData as IModel, mode, setMode, dragData, setDragData, nodes, setNodes, edges, setEdges, junctions, setJunctions, newEdge, setNewEdge, selected, setSelected, pinned, setPinned, pinnedPosition, setPinnedPosition, history, setHistory)
   
   let nodeHandler:NodeHandler = new NodeHandler(canvasController)
   let nodeAnchorHandler:NodeAnchorHandler = new NodeAnchorHandler(canvasController)
@@ -145,6 +151,7 @@ export const Canvas = (props:CanvasProps) => {
       } 
     }
     else if(e.key === "Escape") {
+      console.log("HISTORY:", history)
       canvasController.setMode(CanvasMode.Ready)
       canvasController.clearSelect()
     }
@@ -157,14 +164,11 @@ export const Canvas = (props:CanvasProps) => {
     };
   }, [checkKeyPress]);
 
-
-
   let backgroundMove = (e:React.MouseEvent<SVGElement>) => {
     let pos:Position = {x:0, y:0}
-    pos.x = e.clientX
-    pos.y = e.clientY
+    pos.x = e.pageX
+    pos.y = e.pageY
     const bbox = e.currentTarget.getBoundingClientRect()
-
     if(mode === CanvasMode.MoveNode) {
       nodeHandler.inMove(dragData.currentId, e.shiftKey, {x:e.pageX, y:e.pageY} )
     } else if(e.shiftKey && mode === CanvasMode.AddEdge) {
@@ -221,7 +225,8 @@ export const Canvas = (props:CanvasProps) => {
     index:0
   }
   
-  let els:Array<JSX.Element> = [];
+  let elNodes:Array<JSX.Element> = []
+  let elEdges:Array<JSX.Element> = []
   let cvsW = 0;
   let cvsH = 0;
   let i:number=0;
@@ -235,219 +240,219 @@ export const Canvas = (props:CanvasProps) => {
         switch(n.nodeData.type) {
           case NodeType.ApplicationComponent:
             let niac:JSX.Element = new ApplicationComponentNode(n, np).Render()
-            els.push(niac)
+            elNodes.push(niac)
             break
           case NodeType.ApplicationCollaboration:
             let niacl:JSX.Element = new ApplicationCollaborationNode(n, np).Render()
-            els.push(niacl)
+            elNodes.push(niacl)
             break
           case NodeType.ApplicationInterface:
             let niain:JSX.Element = new ApplicationInterfaceNode(n,np).Render()
-            els.push(niain)
+            elNodes.push(niain)
             break
           case NodeType.ApplicationFunction:
             let niaf:JSX.Element = new ApplicationFunctionNode(n, np).Render()
-            els.push(niaf)
+            elNodes.push(niaf)
             break
           case NodeType.ApplicationInteraction:
             let niaif:JSX.Element = new ApplicationInteractionNode(n, np).Render()
-            els.push(niaif)
+            elNodes.push(niaif)
             break
           case NodeType.ApplicationEvent:
             let niae:JSX.Element = new ApplicationEventNode(n, np).Render()
-            els.push(niae)
+            elNodes.push(niae)
             break
           case NodeType.ApplicationProcess:
             let niap:JSX.Element = new ApplicationProcessNode(n, np).Render()
-            els.push(niap)
+            elNodes.push(niap)
             break
           case NodeType.ApplicationService:
             let nias:JSX.Element = new ApplicationServiceNode(n, np).Render()
-            els.push(nias)
+            elNodes.push(nias)
             break
           case NodeType.ApplicationDataObject:
             let niado:JSX.Element = new ApplicationDataObjectNode(n, np).Render()
-            els.push(niado)
+            elNodes.push(niado)
             break
           case NodeType.BusinessActor:
             let niba:JSX.Element = new BusinessActorNode(n, np).Render()
-            els.push(niba)
+            elNodes.push(niba)
             break
           case NodeType.BusinessRole:
             let nibr:JSX.Element = new BusinessRoleNode(n, np).Render()
-            els.push(nibr)
+            elNodes.push(nibr)
             break
           case NodeType.BusinessInterface:
             let nibi:JSX.Element = new BusinessInterfaceNode(n, np).Render()
-            els.push(nibi)
+            elNodes.push(nibi)
             break
           case NodeType.BusinessCollaboration:
             let nibc:JSX.Element = new BusinessCollaborationNode(n, np).Render()
-            els.push(nibc)
+            elNodes.push(nibc)
             break
           case NodeType.BusinessProcess:
             let nibp:JSX.Element = new BusinessProcessNode(n, np).Render()
-            els.push(nibp)
+            elNodes.push(nibp)
             break
           case NodeType.BusinessProduct:
-              let nibpr:JSX.Element = new BusinessProductNode(n, np).Render()
-              els.push(nibpr)
-              break
+            let nibpr:JSX.Element = new BusinessProductNode(n, np).Render()
+            elNodes.push(nibpr)
+            break
           case NodeType.BusinessFunction:
             let nibf:JSX.Element = new BusinessFunctionNode(n, np).Render()
-            els.push(nibf)
+            elNodes.push(nibf)
             break
           case NodeType.BusinessInteraction:
             let nibin:JSX.Element = new BusinessInteractionNode(n, np).Render()
-            els.push(nibin)
+            elNodes.push(nibin)
             break
           case NodeType.BusinessEvent:
             let nibe:JSX.Element = new BusinessEventNode(n, np).Render()
-            els.push(nibe)
+            elNodes.push(nibe)
             break
           case NodeType.BusinessService:
             let nibs:JSX.Element = new BusinessServiceNode(n, np).Render()
-            els.push(nibs)
+            elNodes.push(nibs)
             break
           case NodeType.BusinessObject:
             let nibo:JSX.Element = new BusinessObjectNode(n, np).Render()
-            els.push(nibo)
+            elNodes.push(nibo)
             break
           case NodeType.BusinessContract:
             let nibco:JSX.Element = new BusinessContractNode(n, np).Render()
-            els.push(nibco)
+            elNodes.push(nibco)
             break
           case NodeType.BusinessRepresentation:
             let nibrp:JSX.Element = new BusinessRepresentationNode(n, np).Render()
-            els.push(nibrp)
+            elNodes.push(nibrp)
             break
           case NodeType.TechnologyArtifact:
             let nita:JSX.Element = new TechnologyArtifactNode(n, np).Render()
-            els.push(nita)
+            elNodes.push(nita)
             break
           case NodeType.TechnologyCollaboration:
             let nitc:JSX.Element = new TechnologyCollaborationNode(n, np).Render()
-            els.push(nitc)
+            elNodes.push(nitc)
             break
           case NodeType.TechnologyCommunicationNetwork:
             let nitcn:JSX.Element = new TechnologyCommunicationNetworkNode(n, np).Render()
-            els.push(nitcn)
+            elNodes.push(nitcn)
             break
           case NodeType.TechnologyDevice:
             let nitd:JSX.Element = new TechnologyDeviceNode(n, np).Render()
-            els.push(nitd)
+            elNodes.push(nitd)
             break
             case NodeType.TechnologyEvent:
             let nite:JSX.Element = new TechnologyEventNode(n, np).Render()
-            els.push(nite)
+            elNodes.push(nite)
             break
           case NodeType.TechnologyFunction:
             let nitf:JSX.Element = new TechnologyFunctionNode(n, np).Render()
-            els.push(nitf)
+            elNodes.push(nitf)
             break
           case NodeType.TechnologyInteraction:
             let niti:JSX.Element = new TechnologyInteractionNode(n, np).Render()
-            els.push(niti)
+            elNodes.push(niti)
             break
           case NodeType.TechnologyInterface:
             let nitif:JSX.Element = new TechnologyInterfaceNode(n, np).Render()
-            els.push(nitif)
+            elNodes.push(nitif)
             break
           case NodeType.TechnologyPath:
             let nitp:JSX.Element = new TechnologyPathNode(n, np).Render()
-            els.push(nitp)
+            elNodes.push(nitp)
             break
           case NodeType.TechnologyProcess:
             let nitpr:JSX.Element = new TechnologyProcessNode(n, np).Render()
-            els.push(nitpr)
+            elNodes.push(nitpr)
             break
           case NodeType.TechnologyService:
             let nits:JSX.Element = new TechnologyServiceNode(n, np).Render()
-            els.push(nits)
+            elNodes.push(nits)
             break
           case NodeType.TechnologySystemSoftware:
             let nitss:JSX.Element = new TechnologySystemSoftwareNode(n, np).Render()
-            els.push(nitss)
+            elNodes.push(nitss)
             break
           case NodeType.TechnologyNode:
             let nitn:JSX.Element = new TechnologyNodeNode(n, np).Render()
-            els.push(nitn)
+            elNodes.push(nitn)
             break
           case NodeType.TechnologyEquipment:
             let niteq:JSX.Element = new TechnologyEquipmentNode(n, np).Render()
-            els.push(niteq)
+            elNodes.push(niteq)
             break
           case NodeType.TechnologyFacility:
             let nitfa:JSX.Element = new TechnologyFacilityNode(n, np).Render()
-            els.push(nitfa)
+            elNodes.push(nitfa)
             break
           case NodeType.TechnologyDistributionNetwork:
             let nitdn:JSX.Element = new TechnologyDistributionNetworkNode(n, np).Render()
-            els.push(nitdn)
+            elNodes.push(nitdn)
             break
           case NodeType.TechnologyMaterial:
             let nitm:JSX.Element = new TechnologyMaterialNode(n, np).Render()
-            els.push(nitm)
+            elNodes.push(nitm)
             break
           case NodeType.MotivationAssesment:
             let nima:JSX.Element = new MotivationAssessmentNode(n, np).Render()
-            els.push(nima)
+            elNodes.push(nima)
             break
           case NodeType.MotivationConstraint:
             let nimc:JSX.Element = new MotivationConstraintNode(n, np).Render()
-            els.push(nimc)
+            elNodes.push(nimc)
             break
           case NodeType.MotivationDriver:
             let nimd:JSX.Element = new MotivationDriverNode(n, np).Render()
-            els.push(nimd)
+            elNodes.push(nimd)
             break
           case NodeType.MotivationGoal:
             let nimg:JSX.Element = new MotivationGoalNode(n, np).Render()
-            els.push(nimg)
+            elNodes.push(nimg)
             break
           case NodeType.MotivationMeaning:
             let nimm:JSX.Element = new MotivationMeaningNode(n, np).Render()
-            els.push(nimm)
+            elNodes.push(nimm)
             break
           case NodeType.MotivationOutcome:
             let nimo:JSX.Element = new MotivationOutcomeNode(n, np).Render()
-            els.push(nimo)
+            elNodes.push(nimo)
             break
           case NodeType.MotivationPrinciple:
             let nimp:JSX.Element = new MotivationPrincipleNode(n, np).Render()
-            els.push(nimp)
+            elNodes.push(nimp)
             break
           case NodeType.MotivationRequirement:
             let nimr:JSX.Element = new MotivationRequirementNode(n, np).Render()
-            els.push(nimr)
+            elNodes.push(nimr)
             break
           case NodeType.MotivationStakeholder:
             let nims:JSX.Element = new MotivationStakeholderNode(n, np).Render()
-            els.push(nims)
+            elNodes.push(nims)
             break
           case NodeType.MotivationValue:
             let nimv:JSX.Element = new MotivationValueNode(n, np).Render()
-            els.push(nimv)
+            elNodes.push(nimv)
             break
           case NodeType.StrategyResource:
             let nisr:JSX.Element = new StrategyResourceNode(n, np).Render()
-            els.push(nisr)
+            elNodes.push(nisr)
             break
           case NodeType.StrategyCapability:
             let nisc:JSX.Element = new StrategyCapabilityNode(n, np).Render()
-            els.push(nisc)
+            elNodes.push(nisc)
             break
           case NodeType.StrategyValueStream:
             let nisvs:JSX.Element = new StrategyValueStreamNode(n, np).Render()
-            els.push(nisvs)
+            elNodes.push(nisvs)
             break
           case NodeType.StrategyCourseOfAction:
             let niscoa:JSX.Element = new StrategyCourseOfActionNode(n, np).Render()
-            els.push(niscoa)
+            elNodes.push(niscoa)
             break
           default:
             let ni:JSX.Element = new BaseNode(n, np).Render()
-            els.push(ni)
+            elNodes.push(ni)
         }
       }
   })
@@ -470,13 +475,11 @@ export const Canvas = (props:CanvasProps) => {
     },
   }
 
-  edges.forEach((e) => {
+  edges.forEach((e, i) => {
     if(e.isVisible) {
-      const src:NodeDisplayInstance|undefined = nodes.find((n)=>{ return n.id == e.edgeData.sourceObject})
-      const dst:NodeDisplayInstance|undefined = nodes.find((n)=>{ return n.id == e.edgeData.destinationObject})
       e.route = helpers.getAdjustedRoute(nodes, junctions, e, dragData.currentId)
       let ei:JSX.Element = new BaseEdge(e, ep).Render()
-      els.push(ei)
+      elEdges.push(ei)
     }
   })
 
@@ -492,7 +495,7 @@ export const Canvas = (props:CanvasProps) => {
   
   junctions.forEach((e) => {
     let ei:JSX.Element = new Junction(e, jp).Render()
-    els.push(ei)
+    elNodes.push(ei)
   })
 
   let propertyBox = <span></span>
@@ -535,9 +538,10 @@ export const Canvas = (props:CanvasProps) => {
   return <div className="canvas" style={{"height": "" + cvsH + "px" , "width": +"" + cvsW + "px" }}>
     <svg id="canvas" version="2.0" height={cvsH} width={cvsW} >
       <rect x="0" y="0" width={cvsW} height={cvsH} fill="#efffff" onClick={canvasController.clearSelect} onMouseMove={backgroundMove} onMouseUp={backgroundMouseUp}/>
-      { els }
-      { newEdgeEl }
+      <g id="node-layer">{ elNodes }</g>
+      <g id="edge-layer">{ elEdges }</g>
       <span id="top"></span>
+      { newEdgeEl }
     </svg>
     { propertyBox }
     <span className='debug-data'>{helpers.getEnumName(CanvasMode, mode) + ", " + selected}</span>

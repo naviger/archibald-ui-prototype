@@ -52,7 +52,7 @@ export class Junction {
   }
 
   mouseUp:MouseEventHandler<SVGGElement> = (e) => {
-    this.params.drop()
+    this.params.drop(e.currentTarget.id)
   }
 
   mouseDown:MouseEventHandler<SVGGElement> = (e) => {

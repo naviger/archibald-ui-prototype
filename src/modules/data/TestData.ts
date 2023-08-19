@@ -15,6 +15,7 @@ import { NodeStatus } from "../enums/enumNodeStatus"
 import { JunctionDisplayInstance } from "../structure/Junction"
 import { JunctionType } from "../enums/enumJunctionType"
 import { FlowDirection } from "../enums/enumFlowDirection"
+import { HistoryActionType } from "../enums/enumHistoryType"
 
 export const GetTestData = ():IModel => {
   let n1:NodeDisplayInstance = {
@@ -1358,7 +1359,7 @@ export const GetTestData = ():IModel => {
     junctions: [],
     Owner: o,
     description: 'test data',
-    history: [ { modifiedDate: new Date(), modifiedBy: o, description: 'created'}]
+    history: [ ]
   };
 
   m.nodes.push(n1)
@@ -1424,8 +1425,78 @@ export const GetTestData = ():IModel => {
   m.edges.push(e7)
   m.edges.push(e8)
 
-  m.junctions.push(j1);
+  m.junctions.push(j1)
   m.junctions.push(j2)
 
+  let dt:Date = new Date
+  let correlation:string = crypto.randomUUID()
+  
+  m.nodes.forEach((n) => {
+    let nd:any = structuredClone(n)
+    nd["nodeRef"] = nd.nodeData.nodeId
+    let ni:Node = n.nodeData
+    delete nd.nodeData
+    
+    m.history.push({
+      correlation: correlation,
+      modifiedDate: dt,
+      type: HistoryActionType.create,
+      objectType: "Node",
+      modifiedBy:o,
+      description: "Create Node: " + ni.nodeId,
+      data: ni
+    })
+
+    m.history.push({
+      correlation: correlation,
+      modifiedDate: dt,
+      type: HistoryActionType.create,
+      objectType: "NodeDisplayInstance",
+      modifiedBy:o,
+      description: "Create Node Display Instance: " + n.id,
+      data: nd
+    })
+  })
+
+  m.junctions.forEach((j) => {
+    let nd:any = structuredClone(j)
+    
+    m.history.push({
+      correlation: correlation,
+      modifiedDate: dt,
+      type: HistoryActionType.create,
+      objectType: "Junction",
+      modifiedBy:o,
+      description: "Create Junction: " + j.id,
+      data: j
+    })
+  })
+
+  m.edges.forEach((e) => {
+    let ed:any = structuredClone(e)
+    ed["edgeRef"] = e.edgeData.edgeId
+    let ei:Edge = e.edgeData
+    delete ed.edgeData
+    
+    m.history.push({
+      correlation: correlation,
+      modifiedDate: dt,
+      type: HistoryActionType.create,
+      objectType: "Edge",
+      modifiedBy:o,
+      description: "Create Edge: " + ei.edgeId,
+      data: ei
+    })
+
+    m.history.push({
+      correlation: correlation,
+      modifiedDate: dt,
+      type: HistoryActionType.create,
+      objectType: "EdgeDisplayInstance",
+      modifiedBy:o,
+      description: "Create Node Display Instance: " + e.id,
+      data: ed
+    })
+  })
   return m;
 }

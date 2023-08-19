@@ -113,7 +113,7 @@ export class BaseEdge {
         )
         break
       case EdgeLayout.NinetyDegree:
-        i=0;
+        i=0
         this.display.route.forEach((pt:Position) => {    
             if(i === 0) {
               let ea0:EdgeAnchor = new EdgeAnchor(this.display.id + ":0", {x: pt.x, y:pt.y}, this.params.anchorParams, EdgeAnchorStatus.Locked, EdgeConstraints.EndAnchor)

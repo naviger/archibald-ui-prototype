@@ -2,14 +2,19 @@ import { AnchorStatus } from "../enums/enumAnchorStatus"
 import { CanvasMode } from "../enums/enumCanvasMode"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { FlowDirection } from "../enums/enumFlowDirection"
+import { BaseEdge } from "../renderer/BaseEdge"
 import { Anchorable } from "../structure/Anchorable"
 import { EdgeDisplayInstance } from "../structure/Edge"
+import { EdgeParameters } from "../structure/EdgeParameters"
 import { JunctionDisplayInstance } from "../structure/Junction"
 import { JunctionAnchorData } from "../structure/JunctionAnchorData"
 import { NodeDisplayInstance } from "../structure/Node"
 import { Position } from "../structure/Position"
 import Helpers from "../utilities/Helpers"
 import { CanvasController } from "./CanvasController"
+import { EdgeAnchorHandler, EdgeHandleHandler, EdgeHandler } from "./EdgeHandler"
+import { History } from "../structure/History"
+import { HistoryActionType } from "../enums/enumHistoryType"
 
 export class JunctionHandler {
 
@@ -111,11 +116,26 @@ export class JunctionHandler {
         } 
         return j
       })
-      this.canvasController.setJunctions(ja);
+      this.canvasController.setJunctions(ja)
     }
   }
 
-  drop = () => {
+  drop = (id:string) => {
+    let h:History[] = structuredClone(this.canvasController.history)
+    let d = new Date
+    let j:any = structuredClone(this.canvasController.junctions.find((i) => { return id === i.id}))
+    let correlation:string = crypto.randomUUID()
+
+    h.push({
+      correlation:correlation,
+      modifiedDate: d,
+      type: HistoryActionType.Update,
+      objectType: "EdgeDisplayInstance",
+      modifiedBy: this.canvasController.model.Owner,
+      description: "Junction moved",
+      data: j
+    })
+
     this.canvasController.setDragData({type:"none", currentId:'', offset: { x: -1, y: -1}, position: { x: -1, y: -1}})
     this.canvasController.setCanvasMode(CanvasMode.Ready)
   }
@@ -231,7 +251,8 @@ export class JunctionHandler {
       let jid = id.split(":")[0]
       let aid = id.split(":")[1]
       let dn = this.canvasController.junctions.find((j) => { return j.id === jid}) as JunctionDisplayInstance
-      let an = dn?.anchors.find((a) => { return a.id === aid}) as JunctionAnchorData
+      //let an = dn?.anchors.find((a) => { return a.id === aid}) as JunctionAnchorData
+      
       ed.edgeData.destinationObject = jid
       ed.destinationAnchor = aid
       ed.id = crypto.randomUUID()
@@ -241,15 +262,17 @@ export class JunctionHandler {
       ed.style=this.canvasController.defaults.edgeStyle
       ed.edgeData.edgeId = crypto.randomUUID();
       
-      let ea:Array<EdgeDisplayInstance> = this.canvasController.edges.map((e, i)=>{
-        return e
-      })
+      let ea:Array<EdgeDisplayInstance> = structuredClone(this.canvasController.edges)
       ea.push(ed)
 
       let foundSrc:boolean = false
       let foundDst:boolean = false
 
-
+      let srcType:string = ""
+      let dstType:string = ""
+      let srcObj:any = {}
+      let dstObj:any = {}
+      
       let ja:Array<JunctionDisplayInstance> = this.canvasController.junctions.map((j, i)=>{
         
         if(j.id === ed.edgeData.sourceObject) {
@@ -260,7 +283,9 @@ export class JunctionHandler {
                 ja.flow = FlowDirection.Out
                 j.anchors[i].edges.push(ed.id)
                 j.anchors[i].status = AnchorStatus.Available
-                foundSrc = true;
+                foundSrc = true
+                srcType = "Junction"
+                srcObj = structuredClone(j)
               }
             }
           }
@@ -276,6 +301,8 @@ export class JunctionHandler {
                 j.anchors[i].status = AnchorStatus.Available
                 j.anchors[i].edges.push(ed.id)
                 foundDst = true
+                dstType = "Junction"
+                dstObj = structuredClone(j)
               }
             }
           }
@@ -291,6 +318,8 @@ export class JunctionHandler {
               if(!n.anchors[i].edges.includes("ed.id")) {
                 n.anchors[i].edges.push(ed.id)
                 foundSrc = true
+                srcType = "Node"
+                srcObj = structuredClone(n)
               }
             }
           }
@@ -301,6 +330,8 @@ export class JunctionHandler {
               if(!n.anchors[i].edges.includes("ed.id")) {
                 n.anchors[i].edges.push(ed.id)
                 foundDst = true
+                dstType = "Node"
+                dstObj = structuredClone(n)
               }
             }
           }
@@ -310,10 +341,89 @@ export class JunctionHandler {
       
       if(foundSrc && foundDst) {
         this.canvasController.setJunctions(ja)
-        if(na.length > 0) this.canvasController.setNodes(na)
+        if(na.length > 0) { this.canvasController.setNodes(na) }
         hed.route = [{x:-1, y:-1}, {x:-1, y:-1}]
         this.canvasController.setNewEdge(hed)
         this.canvasController.setEdges(ea)
+        this.canvasController.setNodes(na)
+        
+        let h:History[] = structuredClone(this.canvasController.history)
+        let d = new Date
+        let correlation:string = crypto.randomUUID()
+        
+        h.push({
+          correlation: correlation,
+          modifiedDate: d,
+          type: HistoryActionType.create,
+          objectType: "Edge",
+          modifiedBy: this.canvasController.model.Owner,
+          description: "New edge created",
+          data: ed.edgeData
+        })
+
+        let e:any = structuredClone(ed)
+        e["edgeRef"] = ed.edgeData.edgeId
+        delete e.edgeData
+
+        h.push({
+          correlation: correlation,
+          modifiedDate: d,
+          type: HistoryActionType.create,
+          objectType: "EdgeDisplayInstance",
+          modifiedBy: this.canvasController.model.Owner,
+          description: "Edge display instance created.",
+          data: e
+        })
+
+        if(srcType === "Node") {
+          srcObj["nodeRef"] = srcObj.nodeData.nodeId
+          delete srcObj.nodeData
+          h.push({
+            correlation: correlation,
+            modifiedDate: d,
+            type: HistoryActionType.Update,
+            objectType: srcType,
+            modifiedBy: this.canvasController.model.Owner,
+            description: "Node anchor updated with edge reference at source.",
+            data: srcObj
+          })
+        } else if(srcType === "Junction") {
+          h.push({
+            correlation: correlation,
+            modifiedDate: d,
+            type: HistoryActionType.Update,
+            objectType: srcType,
+            modifiedBy: this.canvasController.model.Owner,
+            description: "Junction anchor updated with edge reference at source.",
+            data: srcObj
+          })
+        }
+
+        if(dstType === "Node") {
+          dstObj["nodeRef"] = srcObj.nodeData.nodeId
+          delete dstObj.nodeData
+          h.push({
+            correlation: correlation,
+            modifiedDate: d,
+            type: HistoryActionType.create,
+            objectType: "Edge",
+            modifiedBy: this.canvasController.model.Owner,
+            description: "Node anchor updated with edge reference at destination.",
+            data: dstObj
+          })
+        } else if(dstType === "Junction") {
+          h.push({
+            correlation: correlation,
+            modifiedDate: d,
+            type: HistoryActionType.create,
+            objectType: "Edge",
+            modifiedBy: this.canvasController.model.Owner,
+            description: "Junction anchor updated with edge reference at destination.",
+            data: dstObj
+          })
+        }
+
+        this.canvasController.setHistory(h)
       }
       this.canvasController.setCanvasMode(CanvasMode.Ready)
     }

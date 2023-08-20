@@ -5,25 +5,29 @@ import { EdgeRelationships } from "../enums/enumEdgeRelationships";
 import { Anchorable } from "../structure/Anchorable";
 import { DefaultValues } from "../structure/DefaultValues";
 import { DragData } from "../structure/DragData";
-import { EdgeDisplayInstance } from "../structure/Edge";
+import { Edge, EdgeDisplayInstance } from "../structure/Edge";
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { NodeDisplayInstance } from "../structure/Node";
 import { Position } from "../structure/Position";
 import { IModel } from "../structure/Model";
 import {History} from '../structure/History'
+import { HistoryActionType } from "../enums/enumHistoryType";
+import { Queue } from "../utilities/Queue";
+import { DataController } from "./DataController";
 
 export class CanvasController {
   defaults:DefaultValues
+  dataController:DataController
   dragData:DragData
   setDragData: Function
   mode:CanvasMode
   setMode:Function
-  nodes: NodeDisplayInstance[]
-  setNodes: Function
-  edges: EdgeDisplayInstance[]
-  setEdges: Function
-  junctions: JunctionDisplayInstance[]
-  setJunctions: Function
+  nodes: Function //NodeDisplayInstance[]
+  //setNodes: Function
+  edges: Function //EdgeDisplayInstance[]
+  //setEdges: Function
+  junctions: Function //JunctionDisplayInstance[]
+  //setJunctions: Function
   newEdge:EdgeDisplayInstance
   setNewEdge:Function
   selected:string
@@ -32,24 +36,27 @@ export class CanvasController {
   setPinned: Function
   pinnedPosition: Position
   setPinnedPosition: Function
-  history: History[]
-  setHistory: Function
+  history: Function
+  //setHistory: Function
   model:IModel
+
+  historyQueue: Queue<History> =  new Queue<History>()
 
   currentId:string = ""
 
-  constructor(defaults:DefaultValues, model: IModel, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, nodes:NodeDisplayInstance[], setNodes:Function, edges:EdgeDisplayInstance[], setEdges:Function, junctions:JunctionDisplayInstance[], setJunctions:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, selected:string, setSelected:Function, pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function, history:History[], setHistory:Function) {
+  constructor(defaults:DefaultValues, dataController:DataController, model: IModel, mode: CanvasMode, setMode:Function, dragData:DragData, setDragData:Function, newEdge:EdgeDisplayInstance, setNewEdge:Function, selected:string, setSelected:Function, pinned: boolean, setPinned: Function, pinnedPosition: Position, setPinnedPosition: Function) {
     this.defaults = defaults
+    this.dataController = dataController
     this.mode = mode
     this.setMode = setMode
     this.setDragData = setDragData
     this.dragData = dragData  
-    this.nodes = nodes
-    this.setNodes = setNodes
-    this.edges = edges
-    this.setEdges = setEdges
-    this.junctions = junctions
-    this.setJunctions = setJunctions
+    this.nodes = ():NodeDisplayInstance[] => { return this.dataController.queues['node'].data as NodeDisplayInstance[]}
+    //this.setNodes = setNodes
+    this.edges = ():EdgeDisplayInstance[] => { return this.dataController.queues['edge'].data as EdgeDisplayInstance[]}
+    //this.setEdges = setEdges
+    this.junctions = ():JunctionDisplayInstance[] => { return this.dataController.queues['junction'].data as JunctionDisplayInstance[]}
+    //this.setJunctions = setJunctions
     this.newEdge = newEdge
     this.setNewEdge = setNewEdge
     this.selected = selected
@@ -58,17 +65,17 @@ export class CanvasController {
     this.setPinned = setPinned
     this.pinnedPosition = pinnedPosition
     this.setPinnedPosition = setPinnedPosition
-    this.history = history
-    this.setHistory = setHistory
+    this.history = ():History[] => { return this.dataController.queues['history'].data as History[]}
+    //this.setHistory = setHistory
     this.model = model
   }
 
   getUniqueId = () => {
 
   }
-  
+
   select = (type:string, id:string, offset:Position, position:Position) => {
-    let na:Array<NodeDisplayInstance> = this.nodes.map((n, i)=>{
+    let na:Array<NodeDisplayInstance> = this.nodes().map((n:NodeDisplayInstance, i:number)=>{
       if(n.id === id && type === "node") {
         n.isSelected = true
       } else {
@@ -78,7 +85,7 @@ export class CanvasController {
     })
     this.setNodes(na)
 
-    let ea:Array<EdgeDisplayInstance> = this.edges.map((e, i)=>{
+    let ea:Array<EdgeDisplayInstance> = this.edges().map((e:EdgeDisplayInstance, i:number)=>{
       let iid:string = id.split(":")[0]
       if((e.id === id && type === "edge") || (e.id === iid && type==="edgeAnchor") || (e.id === iid && type==="edgeHandle")) {
         e.isSelected = true
@@ -90,8 +97,8 @@ export class CanvasController {
     this.setDragData({type:type, currentId: id, offset:offset, position:position} )
   }
 
-  replaceEdge = (e:EdgeDisplayInstance) => {
-    let ea:Array<EdgeDisplayInstance> = this.edges.map((i) => {
+  replaceEdge = (e:EdgeDisplayInstance, correlation:string, msg:string) => {
+    let ea:Array<EdgeDisplayInstance> = this.edges().map((i:EdgeDisplayInstance) => {
       if(i.id === e.id) {
         return e
       }
@@ -100,27 +107,37 @@ export class CanvasController {
       }
     })
     this.setEdges(ea)
+
+    let eo:any = structuredClone(e)
+    eo["edgeRef"] = e.edgeData.edgeId
+    delete eo.edgeData
+    this.addHistoryItem(correlation, HistoryActionType.Update, "EdgeDisplayInstance", "Update edge display instance " + eo.id + ":" + msg, eo)
   }
 
-  replaceAnchorable = (a:NodeDisplayInstance | JunctionDisplayInstance) => {
-    let found:string = ""
+  replaceAnchorable = async (a:NodeDisplayInstance | JunctionDisplayInstance, correlation:string, msg:string) => {
+    let found:boolean = false
     if(!a) return
-    let na:Array<NodeDisplayInstance> = this.nodes.map((i:NodeDisplayInstance) => {
+    let na:Array<NodeDisplayInstance> = this.nodes().map((i:NodeDisplayInstance) => {
       if(i.id === a.id) {
-        found="n"
+        found=true
         return a as NodeDisplayInstance
       }
       else {
         return i
       }
     })
-
+    
     if(found) {
-      this.setNodes(na)
+      console.log("FOUND N", na, a)
+      let n:any = structuredClone(a)
+      n["nodeRef"] = (a as NodeDisplayInstance).nodeData.nodeId
+      delete n.nodeData
+      this.addHistoryItem(correlation, HistoryActionType.Update, "NodeDisplayInstance", "Update node display instance " + a.id + ": " + msg, a)
+      this.setNodes(structuredClone(na))
     } else {
-      let ja:Array<JunctionDisplayInstance> = this.junctions.map((i:JunctionDisplayInstance) => {
+      let ja:Array<JunctionDisplayInstance> = this.junctions().map((i:JunctionDisplayInstance) => {
         if(i.id === a.id) {
-          found="j"
+          found=true
           return a as JunctionDisplayInstance
         }
         else {
@@ -128,8 +145,10 @@ export class CanvasController {
         }
       })
   
-      if(found === "j") {
-        this.setJunctions(ja)
+      if(found) {
+        console.log("FOUND J")
+        this.setJunctions(structuredClone(ja))
+        this.addHistoryItem(correlation, HistoryActionType.Update, "JunctionDisplayInstance", "Update junction display instance " + a.id + ": " + msg, a)
       }
     }
   }
@@ -305,5 +324,46 @@ export class CanvasController {
     } else if(el != null) {
       el.removeAttribute("data-selected")
     }
+  }
+
+  findEdgeByConnections = (src:string, dst:string, edgeType:EdgeRelationships):Edge|undefined => {
+    let e = this.edges.find((e) => {
+      return e.edgeData.sourceObject === src && e.edgeData.destinationObject === dst && e.edgeData.type === edgeType
+    })
+
+    return e?.edgeData
+  }
+
+  findEdgeDisplayByConnections = (src:string, srcA:string, dst:string, dstA:string, edgeType:EdgeRelationships):EdgeDisplayInstance|undefined => {
+    let ed = this.edges.find((e) => {
+      return e.sourceAnchor === srcA && e.edgeData.sourceObject === src && e.destinationAnchor === dstA && e.edgeData.destinationObject === dst && e.edgeData.type === edgeType
+    })
+
+
+    return ed
+  }
+
+  addHistoryItem = (correlation:string, type: HistoryActionType, objectType: string, description:string, data:object) => {
+    let h:History[] = structuredClone(this.history)
+    let d = new Date
+
+    this.historyQueue.enqueue({
+      correlation: correlation,
+      modifiedDate: d,
+      type: HistoryActionType.create,
+      objectType: objectType,
+      modifiedBy: this.model.Owner,
+      description: description,
+      data: data
+    })
+  }
+
+  saveHistory = async () => {
+    let h:History[] = structuredClone(this.history)
+    while(!this.historyQueue.isEmpty) {
+      h.push(this.historyQueue.dequeue())
+    }
+
+    this.setHistory(h)
   }
 }

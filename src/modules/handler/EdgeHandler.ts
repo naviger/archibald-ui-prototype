@@ -2,6 +2,7 @@ import { CanvasMode } from "../enums/enumCanvasMode";
 import { EdgeConstraints } from "../enums/enumEdgeConstraints";
 import { EdgeDirection } from "../enums/enumEdgeDirection";
 import { EdgeLayout } from "../enums/enumEdgeLayout";
+import { HistoryActionType } from "../enums/enumHistoryType";
 import { EdgeDisplayInstance } from "../structure/Edge";
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { NodeDisplayInstance } from "../structure/Node";
@@ -202,10 +203,13 @@ export class EdgeHandler {
   }
 
   remove = (id:string) => {
+    let correlation:string = crypto.randomUUID()
     let tgt:number = this.canvasController.edges.findIndex((e)=>{return e.id === id})
     let ea = structuredClone(this.canvasController.edges)
     ea.splice(tgt, 1)
     this.canvasController.setEdges(ea)
+    this.canvasController.addHistoryItem(correlation, HistoryActionType.Delete, "EdgeDisplayInstance", "The edge display instance "+ id + " was deleted.", ea[tgt])
+    this.canvasController.saveHistory()
   }
 }
 

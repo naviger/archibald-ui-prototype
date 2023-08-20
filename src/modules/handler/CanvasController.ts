@@ -66,10 +66,6 @@ export class CanvasController {
     this.model = model
   }
 
-  getUniqueId = () => {
-
-  }
-
   select = (type:string, id:string, offset:Position, position:Position) => {
     let na:Array<NodeDisplayInstance> = this.nodes.map((n:NodeDisplayInstance, i:number)=>{
       if(n.id === id && type === "node") {
@@ -124,7 +120,6 @@ export class CanvasController {
     })
     
     if(found) {
-      console.log("FOUND N", na, a.id)
       let n:any = structuredClone(a)
       n["nodeRef"] = (a as NodeDisplayInstance).nodeData.nodeId
       delete n.nodeData

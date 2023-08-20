@@ -151,7 +151,6 @@ export const Canvas = (props:CanvasProps) => {
       } 
     }
     else if(e.key === "Escape") {
-      console.log("HISTORY:", history)
       canvasController.setMode(CanvasMode.Ready)
       canvasController.clearSelect()
     }

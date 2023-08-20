@@ -3,5 +3,4 @@ export type NodeAnchorParameters = {
   clearHover:Function
   setSelectedAnchor:Function
   setNewEdgeEndPoint:Function
-  dragNewEdge:Function
 }

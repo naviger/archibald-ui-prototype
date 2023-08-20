@@ -8,8 +8,6 @@ import { JunctionParameters } from "../structure/JunctionParameters";
 import { JunctionDisplayInstance } from "../structure/Junction";
 import { AnchorStatus } from "../enums/enumAnchorStatus";
 
-
-
 export class Junction {
   id:string
   type:JunctionType

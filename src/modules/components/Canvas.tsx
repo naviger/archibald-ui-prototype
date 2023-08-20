@@ -218,7 +218,6 @@ export const Canvas = (props:CanvasProps) => {
       clearHover: nodeAnchorHandler.clearHover,
       setSelectedAnchor: nodeAnchorHandler.startNewEdge,
       setNewEdgeEndPoint: nodeAnchorHandler.endNewEdge,
-      dragNewEdge:  nodeAnchorHandler.dragNewEdge
     },
     inAddAnchor: nodeHandler.inAddAnchor,
     setReady: nodeHandler.setReady,
@@ -232,229 +231,229 @@ export const Canvas = (props:CanvasProps) => {
   let i:number=0;
 
   nodes.forEach((n)=> {
-      if(n.isVisible) {
-        if(n.position.x + nodeW > cvsW) { cvsW = n.position.x + nodeW}
-        if(n.position.y + nodeH > cvsH) { cvsH = n.position.y + nodeH}
+    if(n.isVisible) {
+      if(n.position.x + nodeW > cvsW) { cvsW = n.position.x + nodeW}
+      if(n.position.y + nodeH > cvsH) { cvsH = n.position.y + nodeH}
 
-        np.index = i++;
-        switch(n.nodeData.type) {
-          case NodeType.ApplicationComponent:
-            let niac:JSX.Element = new ApplicationComponentNode(n, np).Render()
-            elNodes.push(niac)
-            break
-          case NodeType.ApplicationCollaboration:
-            let niacl:JSX.Element = new ApplicationCollaborationNode(n, np).Render()
-            elNodes.push(niacl)
-            break
-          case NodeType.ApplicationInterface:
-            let niain:JSX.Element = new ApplicationInterfaceNode(n,np).Render()
-            elNodes.push(niain)
-            break
-          case NodeType.ApplicationFunction:
-            let niaf:JSX.Element = new ApplicationFunctionNode(n, np).Render()
-            elNodes.push(niaf)
-            break
-          case NodeType.ApplicationInteraction:
-            let niaif:JSX.Element = new ApplicationInteractionNode(n, np).Render()
-            elNodes.push(niaif)
-            break
-          case NodeType.ApplicationEvent:
-            let niae:JSX.Element = new ApplicationEventNode(n, np).Render()
-            elNodes.push(niae)
-            break
-          case NodeType.ApplicationProcess:
-            let niap:JSX.Element = new ApplicationProcessNode(n, np).Render()
-            elNodes.push(niap)
-            break
-          case NodeType.ApplicationService:
-            let nias:JSX.Element = new ApplicationServiceNode(n, np).Render()
-            elNodes.push(nias)
-            break
-          case NodeType.ApplicationDataObject:
-            let niado:JSX.Element = new ApplicationDataObjectNode(n, np).Render()
-            elNodes.push(niado)
-            break
-          case NodeType.BusinessActor:
-            let niba:JSX.Element = new BusinessActorNode(n, np).Render()
-            elNodes.push(niba)
-            break
-          case NodeType.BusinessRole:
-            let nibr:JSX.Element = new BusinessRoleNode(n, np).Render()
-            elNodes.push(nibr)
-            break
-          case NodeType.BusinessInterface:
-            let nibi:JSX.Element = new BusinessInterfaceNode(n, np).Render()
-            elNodes.push(nibi)
-            break
-          case NodeType.BusinessCollaboration:
-            let nibc:JSX.Element = new BusinessCollaborationNode(n, np).Render()
-            elNodes.push(nibc)
-            break
-          case NodeType.BusinessProcess:
-            let nibp:JSX.Element = new BusinessProcessNode(n, np).Render()
-            elNodes.push(nibp)
-            break
-          case NodeType.BusinessProduct:
-            let nibpr:JSX.Element = new BusinessProductNode(n, np).Render()
-            elNodes.push(nibpr)
-            break
-          case NodeType.BusinessFunction:
-            let nibf:JSX.Element = new BusinessFunctionNode(n, np).Render()
-            elNodes.push(nibf)
-            break
-          case NodeType.BusinessInteraction:
-            let nibin:JSX.Element = new BusinessInteractionNode(n, np).Render()
-            elNodes.push(nibin)
-            break
-          case NodeType.BusinessEvent:
-            let nibe:JSX.Element = new BusinessEventNode(n, np).Render()
-            elNodes.push(nibe)
-            break
-          case NodeType.BusinessService:
-            let nibs:JSX.Element = new BusinessServiceNode(n, np).Render()
-            elNodes.push(nibs)
-            break
-          case NodeType.BusinessObject:
-            let nibo:JSX.Element = new BusinessObjectNode(n, np).Render()
-            elNodes.push(nibo)
-            break
-          case NodeType.BusinessContract:
-            let nibco:JSX.Element = new BusinessContractNode(n, np).Render()
-            elNodes.push(nibco)
-            break
-          case NodeType.BusinessRepresentation:
-            let nibrp:JSX.Element = new BusinessRepresentationNode(n, np).Render()
-            elNodes.push(nibrp)
-            break
-          case NodeType.TechnologyArtifact:
-            let nita:JSX.Element = new TechnologyArtifactNode(n, np).Render()
-            elNodes.push(nita)
-            break
-          case NodeType.TechnologyCollaboration:
-            let nitc:JSX.Element = new TechnologyCollaborationNode(n, np).Render()
-            elNodes.push(nitc)
-            break
-          case NodeType.TechnologyCommunicationNetwork:
-            let nitcn:JSX.Element = new TechnologyCommunicationNetworkNode(n, np).Render()
-            elNodes.push(nitcn)
-            break
-          case NodeType.TechnologyDevice:
-            let nitd:JSX.Element = new TechnologyDeviceNode(n, np).Render()
-            elNodes.push(nitd)
-            break
-            case NodeType.TechnologyEvent:
-            let nite:JSX.Element = new TechnologyEventNode(n, np).Render()
-            elNodes.push(nite)
-            break
-          case NodeType.TechnologyFunction:
-            let nitf:JSX.Element = new TechnologyFunctionNode(n, np).Render()
-            elNodes.push(nitf)
-            break
-          case NodeType.TechnologyInteraction:
-            let niti:JSX.Element = new TechnologyInteractionNode(n, np).Render()
-            elNodes.push(niti)
-            break
-          case NodeType.TechnologyInterface:
-            let nitif:JSX.Element = new TechnologyInterfaceNode(n, np).Render()
-            elNodes.push(nitif)
-            break
-          case NodeType.TechnologyPath:
-            let nitp:JSX.Element = new TechnologyPathNode(n, np).Render()
-            elNodes.push(nitp)
-            break
-          case NodeType.TechnologyProcess:
-            let nitpr:JSX.Element = new TechnologyProcessNode(n, np).Render()
-            elNodes.push(nitpr)
-            break
-          case NodeType.TechnologyService:
-            let nits:JSX.Element = new TechnologyServiceNode(n, np).Render()
-            elNodes.push(nits)
-            break
-          case NodeType.TechnologySystemSoftware:
-            let nitss:JSX.Element = new TechnologySystemSoftwareNode(n, np).Render()
-            elNodes.push(nitss)
-            break
-          case NodeType.TechnologyNode:
-            let nitn:JSX.Element = new TechnologyNodeNode(n, np).Render()
-            elNodes.push(nitn)
-            break
-          case NodeType.TechnologyEquipment:
-            let niteq:JSX.Element = new TechnologyEquipmentNode(n, np).Render()
-            elNodes.push(niteq)
-            break
-          case NodeType.TechnologyFacility:
-            let nitfa:JSX.Element = new TechnologyFacilityNode(n, np).Render()
-            elNodes.push(nitfa)
-            break
-          case NodeType.TechnologyDistributionNetwork:
-            let nitdn:JSX.Element = new TechnologyDistributionNetworkNode(n, np).Render()
-            elNodes.push(nitdn)
-            break
-          case NodeType.TechnologyMaterial:
-            let nitm:JSX.Element = new TechnologyMaterialNode(n, np).Render()
-            elNodes.push(nitm)
-            break
-          case NodeType.MotivationAssesment:
-            let nima:JSX.Element = new MotivationAssessmentNode(n, np).Render()
-            elNodes.push(nima)
-            break
-          case NodeType.MotivationConstraint:
-            let nimc:JSX.Element = new MotivationConstraintNode(n, np).Render()
-            elNodes.push(nimc)
-            break
-          case NodeType.MotivationDriver:
-            let nimd:JSX.Element = new MotivationDriverNode(n, np).Render()
-            elNodes.push(nimd)
-            break
-          case NodeType.MotivationGoal:
-            let nimg:JSX.Element = new MotivationGoalNode(n, np).Render()
-            elNodes.push(nimg)
-            break
-          case NodeType.MotivationMeaning:
-            let nimm:JSX.Element = new MotivationMeaningNode(n, np).Render()
-            elNodes.push(nimm)
-            break
-          case NodeType.MotivationOutcome:
-            let nimo:JSX.Element = new MotivationOutcomeNode(n, np).Render()
-            elNodes.push(nimo)
-            break
-          case NodeType.MotivationPrinciple:
-            let nimp:JSX.Element = new MotivationPrincipleNode(n, np).Render()
-            elNodes.push(nimp)
-            break
-          case NodeType.MotivationRequirement:
-            let nimr:JSX.Element = new MotivationRequirementNode(n, np).Render()
-            elNodes.push(nimr)
-            break
-          case NodeType.MotivationStakeholder:
-            let nims:JSX.Element = new MotivationStakeholderNode(n, np).Render()
-            elNodes.push(nims)
-            break
-          case NodeType.MotivationValue:
-            let nimv:JSX.Element = new MotivationValueNode(n, np).Render()
-            elNodes.push(nimv)
-            break
-          case NodeType.StrategyResource:
-            let nisr:JSX.Element = new StrategyResourceNode(n, np).Render()
-            elNodes.push(nisr)
-            break
-          case NodeType.StrategyCapability:
-            let nisc:JSX.Element = new StrategyCapabilityNode(n, np).Render()
-            elNodes.push(nisc)
-            break
-          case NodeType.StrategyValueStream:
-            let nisvs:JSX.Element = new StrategyValueStreamNode(n, np).Render()
-            elNodes.push(nisvs)
-            break
-          case NodeType.StrategyCourseOfAction:
-            let niscoa:JSX.Element = new StrategyCourseOfActionNode(n, np).Render()
-            elNodes.push(niscoa)
-            break
-          default:
-            let ni:JSX.Element = new BaseNode(n, np).Render()
-            elNodes.push(ni)
-        }
+      np.index = i++;
+      switch(n.nodeData.type) {
+        case NodeType.ApplicationComponent:
+          let niac:JSX.Element = new ApplicationComponentNode(n, np).Render()
+          elNodes.push(niac)
+          break
+        case NodeType.ApplicationCollaboration:
+          let niacl:JSX.Element = new ApplicationCollaborationNode(n, np).Render()
+          elNodes.push(niacl)
+          break
+        case NodeType.ApplicationInterface:
+          let niain:JSX.Element = new ApplicationInterfaceNode(n,np).Render()
+          elNodes.push(niain)
+          break
+        case NodeType.ApplicationFunction:
+          let niaf:JSX.Element = new ApplicationFunctionNode(n, np).Render()
+          elNodes.push(niaf)
+          break
+        case NodeType.ApplicationInteraction:
+          let niaif:JSX.Element = new ApplicationInteractionNode(n, np).Render()
+          elNodes.push(niaif)
+          break
+        case NodeType.ApplicationEvent:
+          let niae:JSX.Element = new ApplicationEventNode(n, np).Render()
+          elNodes.push(niae)
+          break
+        case NodeType.ApplicationProcess:
+          let niap:JSX.Element = new ApplicationProcessNode(n, np).Render()
+          elNodes.push(niap)
+          break
+        case NodeType.ApplicationService:
+          let nias:JSX.Element = new ApplicationServiceNode(n, np).Render()
+          elNodes.push(nias)
+          break
+        case NodeType.ApplicationDataObject:
+          let niado:JSX.Element = new ApplicationDataObjectNode(n, np).Render()
+          elNodes.push(niado)
+          break
+        case NodeType.BusinessActor:
+          let niba:JSX.Element = new BusinessActorNode(n, np).Render()
+          elNodes.push(niba)
+          break
+        case NodeType.BusinessRole:
+          let nibr:JSX.Element = new BusinessRoleNode(n, np).Render()
+          elNodes.push(nibr)
+          break
+        case NodeType.BusinessInterface:
+          let nibi:JSX.Element = new BusinessInterfaceNode(n, np).Render()
+          elNodes.push(nibi)
+          break
+        case NodeType.BusinessCollaboration:
+          let nibc:JSX.Element = new BusinessCollaborationNode(n, np).Render()
+          elNodes.push(nibc)
+          break
+        case NodeType.BusinessProcess:
+          let nibp:JSX.Element = new BusinessProcessNode(n, np).Render()
+          elNodes.push(nibp)
+          break
+        case NodeType.BusinessProduct:
+          let nibpr:JSX.Element = new BusinessProductNode(n, np).Render()
+          elNodes.push(nibpr)
+          break
+        case NodeType.BusinessFunction:
+          let nibf:JSX.Element = new BusinessFunctionNode(n, np).Render()
+          elNodes.push(nibf)
+          break
+        case NodeType.BusinessInteraction:
+          let nibin:JSX.Element = new BusinessInteractionNode(n, np).Render()
+          elNodes.push(nibin)
+          break
+        case NodeType.BusinessEvent:
+          let nibe:JSX.Element = new BusinessEventNode(n, np).Render()
+          elNodes.push(nibe)
+          break
+        case NodeType.BusinessService:
+          let nibs:JSX.Element = new BusinessServiceNode(n, np).Render()
+          elNodes.push(nibs)
+          break
+        case NodeType.BusinessObject:
+          let nibo:JSX.Element = new BusinessObjectNode(n, np).Render()
+          elNodes.push(nibo)
+          break
+        case NodeType.BusinessContract:
+          let nibco:JSX.Element = new BusinessContractNode(n, np).Render()
+          elNodes.push(nibco)
+          break
+        case NodeType.BusinessRepresentation:
+          let nibrp:JSX.Element = new BusinessRepresentationNode(n, np).Render()
+          elNodes.push(nibrp)
+          break
+        case NodeType.TechnologyArtifact:
+          let nita:JSX.Element = new TechnologyArtifactNode(n, np).Render()
+          elNodes.push(nita)
+          break
+        case NodeType.TechnologyCollaboration:
+          let nitc:JSX.Element = new TechnologyCollaborationNode(n, np).Render()
+          elNodes.push(nitc)
+          break
+        case NodeType.TechnologyCommunicationNetwork:
+          let nitcn:JSX.Element = new TechnologyCommunicationNetworkNode(n, np).Render()
+          elNodes.push(nitcn)
+          break
+        case NodeType.TechnologyDevice:
+          let nitd:JSX.Element = new TechnologyDeviceNode(n, np).Render()
+          elNodes.push(nitd)
+          break
+          case NodeType.TechnologyEvent:
+          let nite:JSX.Element = new TechnologyEventNode(n, np).Render()
+          elNodes.push(nite)
+          break
+        case NodeType.TechnologyFunction:
+          let nitf:JSX.Element = new TechnologyFunctionNode(n, np).Render()
+          elNodes.push(nitf)
+          break
+        case NodeType.TechnologyInteraction:
+          let niti:JSX.Element = new TechnologyInteractionNode(n, np).Render()
+          elNodes.push(niti)
+          break
+        case NodeType.TechnologyInterface:
+          let nitif:JSX.Element = new TechnologyInterfaceNode(n, np).Render()
+          elNodes.push(nitif)
+          break
+        case NodeType.TechnologyPath:
+          let nitp:JSX.Element = new TechnologyPathNode(n, np).Render()
+          elNodes.push(nitp)
+          break
+        case NodeType.TechnologyProcess:
+          let nitpr:JSX.Element = new TechnologyProcessNode(n, np).Render()
+          elNodes.push(nitpr)
+          break
+        case NodeType.TechnologyService:
+          let nits:JSX.Element = new TechnologyServiceNode(n, np).Render()
+          elNodes.push(nits)
+          break
+        case NodeType.TechnologySystemSoftware:
+          let nitss:JSX.Element = new TechnologySystemSoftwareNode(n, np).Render()
+          elNodes.push(nitss)
+          break
+        case NodeType.TechnologyNode:
+          let nitn:JSX.Element = new TechnologyNodeNode(n, np).Render()
+          elNodes.push(nitn)
+          break
+        case NodeType.TechnologyEquipment:
+          let niteq:JSX.Element = new TechnologyEquipmentNode(n, np).Render()
+          elNodes.push(niteq)
+          break
+        case NodeType.TechnologyFacility:
+          let nitfa:JSX.Element = new TechnologyFacilityNode(n, np).Render()
+          elNodes.push(nitfa)
+          break
+        case NodeType.TechnologyDistributionNetwork:
+          let nitdn:JSX.Element = new TechnologyDistributionNetworkNode(n, np).Render()
+          elNodes.push(nitdn)
+          break
+        case NodeType.TechnologyMaterial:
+          let nitm:JSX.Element = new TechnologyMaterialNode(n, np).Render()
+          elNodes.push(nitm)
+          break
+        case NodeType.MotivationAssesment:
+          let nima:JSX.Element = new MotivationAssessmentNode(n, np).Render()
+          elNodes.push(nima)
+          break
+        case NodeType.MotivationConstraint:
+          let nimc:JSX.Element = new MotivationConstraintNode(n, np).Render()
+          elNodes.push(nimc)
+          break
+        case NodeType.MotivationDriver:
+          let nimd:JSX.Element = new MotivationDriverNode(n, np).Render()
+          elNodes.push(nimd)
+          break
+        case NodeType.MotivationGoal:
+          let nimg:JSX.Element = new MotivationGoalNode(n, np).Render()
+          elNodes.push(nimg)
+          break
+        case NodeType.MotivationMeaning:
+          let nimm:JSX.Element = new MotivationMeaningNode(n, np).Render()
+          elNodes.push(nimm)
+          break
+        case NodeType.MotivationOutcome:
+          let nimo:JSX.Element = new MotivationOutcomeNode(n, np).Render()
+          elNodes.push(nimo)
+          break
+        case NodeType.MotivationPrinciple:
+          let nimp:JSX.Element = new MotivationPrincipleNode(n, np).Render()
+          elNodes.push(nimp)
+          break
+        case NodeType.MotivationRequirement:
+          let nimr:JSX.Element = new MotivationRequirementNode(n, np).Render()
+          elNodes.push(nimr)
+          break
+        case NodeType.MotivationStakeholder:
+          let nims:JSX.Element = new MotivationStakeholderNode(n, np).Render()
+          elNodes.push(nims)
+          break
+        case NodeType.MotivationValue:
+          let nimv:JSX.Element = new MotivationValueNode(n, np).Render()
+          elNodes.push(nimv)
+          break
+        case NodeType.StrategyResource:
+          let nisr:JSX.Element = new StrategyResourceNode(n, np).Render()
+          elNodes.push(nisr)
+          break
+        case NodeType.StrategyCapability:
+          let nisc:JSX.Element = new StrategyCapabilityNode(n, np).Render()
+          elNodes.push(nisc)
+          break
+        case NodeType.StrategyValueStream:
+          let nisvs:JSX.Element = new StrategyValueStreamNode(n, np).Render()
+          elNodes.push(nisvs)
+          break
+        case NodeType.StrategyCourseOfAction:
+          let niscoa:JSX.Element = new StrategyCourseOfActionNode(n, np).Render()
+          elNodes.push(niscoa)
+          break
+        default:
+          let ni:JSX.Element = new BaseNode(n, np).Render()
+          elNodes.push(ni)
       }
+    }
   })
 
   let ep:EdgeParameters = {

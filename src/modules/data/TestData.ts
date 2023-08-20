@@ -2,15 +2,12 @@ import { Edge, EdgeDisplayInstance } from "../structure/Edge"
 import { IModel } from "../structure/Model"
 import { Node, NodeDisplayInstance} from "../structure/Node"
 import { Entity } from "../structure/Entity"
-import { History } from "../structure/History"
 import { NodeType } from "../enums/enumNodeType"
 import { AnchorStatus } from "../enums/enumAnchorStatus"
 import { EdgeLayout } from "../enums/enumEdgeLayout"
 import { EdgeRelationships } from "../enums/enumEdgeRelationships"
 import { NodeFamily } from "../enums/enumNodeFamily"
 import { Position } from "../structure/Position"
-import { IpcNetConnectOpts } from "net"
-import { EdgeDirection } from "../enums/enumEdgeDirection"
 import { NodeStatus } from "../enums/enumNodeStatus"
 import { JunctionDisplayInstance } from "../structure/Junction"
 import { JunctionType } from "../enums/enumJunctionType"
@@ -1438,6 +1435,7 @@ export const GetTestData = ():IModel => {
     delete nd.nodeData
     
     m.history.push({
+      id: crypto.randomUUID(),
       correlation: correlation,
       modifiedDate: dt,
       type: HistoryActionType.create,
@@ -1448,6 +1446,7 @@ export const GetTestData = ():IModel => {
     })
 
     m.history.push({
+      id: crypto.randomUUID(),
       correlation: correlation,
       modifiedDate: dt,
       type: HistoryActionType.create,
@@ -1462,6 +1461,7 @@ export const GetTestData = ():IModel => {
     let nd:any = structuredClone(j)
     
     m.history.push({
+      id: crypto.randomUUID(),
       correlation: correlation,
       modifiedDate: dt,
       type: HistoryActionType.create,
@@ -1479,6 +1479,7 @@ export const GetTestData = ():IModel => {
     delete ed.edgeData
     
     m.history.push({
+      id: crypto.randomUUID(),
       correlation: correlation,
       modifiedDate: dt,
       type: HistoryActionType.create,
@@ -1489,6 +1490,7 @@ export const GetTestData = ():IModel => {
     })
 
     m.history.push({
+      id: crypto.randomUUID(),
       correlation: correlation,
       modifiedDate: dt,
       type: HistoryActionType.create,

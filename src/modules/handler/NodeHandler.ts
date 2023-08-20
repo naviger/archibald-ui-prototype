@@ -77,7 +77,6 @@ export class NodeHandler {
       }
       return n;
     })
-    this.canvasController.setNodes(na)
     this.canvasController.setSelected("node:" + id)
   }
   
@@ -329,25 +328,10 @@ export class NodeHandler {
         edges:[]
       }
       n.anchors.push(a)
-      console.log("NODE:", n, pos)
-      n.status = NodeStatus.Ready;
-      this.canvasController.replaceAnchorable(structuredClone(n), crypto.randomUUID(), "Add Anchor " + a.id + " at " + JSON.stringify(a.position))
-      this.canvasController.saveHistory()
+      n.status = NodeStatus.Ready
 
-      // let na:Array<NodeDisplayInstance> = this.canvasController.nodes.map((n, i)=>{
-      //   if(n.id === id) {
-      //     let a:NodeAnchorData = {
-      //       id: 'd' + (n.anchors.length - 7),
-      //       position: {x:pos.x - n.position.x, y: pos.y - n.position.y},
-      //       status: AnchorStatus.Available && AnchorStatus.Dynamic,
-      //       edges:[]
-      //     }
-      //     n.anchors.push(a)
-      //     n.status = NodeStatus.Ready;
-      //   }
-      //   return n;
-      // })
-      //this.canvasController.setNodes(na)
+      this.canvasController.replaceAnchorable(n, crypto.randomUUID(), "Add Anchor " + a.id + " at " + JSON.stringify(a.position))
+      this.canvasController.saveHistory()
     }
   }
 
@@ -653,6 +637,4 @@ export class NodeAnchorHandler {
     }
   }
 
-  dragNewEdge = () => {
-  }
 }
